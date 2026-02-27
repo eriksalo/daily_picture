@@ -54,21 +54,15 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     console.log(`Image: ${imageBuffer.length} bytes`);
 
     // Step 3: Upload image for all display sizes (same source, devices scale locally)
-    const keys = [
-      `images/${dateStr}/960x540-gray16.jpg`,
-      `images/${dateStr}/1024x1024-gray256.jpg`,
-    ];
-
-    for (const key of keys) {
-      await s3.send(new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: imageBuffer,
-        ContentType: 'image/png',
-        CacheControl: 'public, max-age=86400',
-      }));
-      console.log(`Uploaded: ${key}`);
-    }
+    const imageKey = `images/${dateStr}/image.png`;
+    await s3.send(new PutObjectCommand({
+      Bucket: bucketName,
+      Key: imageKey,
+      Body: imageBuffer,
+      ContentType: 'image/png',
+      CacheControl: 'public, max-age=86400',
+    }));
+    console.log(`Uploaded: ${imageKey}`);
 
     // Upload metadata
     const metadata = {

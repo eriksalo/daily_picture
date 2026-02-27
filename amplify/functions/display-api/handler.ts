@@ -7,24 +7,19 @@ const s3 = new S3Client();
 export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
   const bucketName = process.env.DAILY_PICTURE_IMAGES_BUCKET_NAME!;
 
-  // Parse device headers
-  const width = parseInt(event.headers?.['x-device-width'] ?? '960');
-  const height = parseInt(event.headers?.['x-device-height'] ?? '540');
-  const grayscale = parseInt(event.headers?.['x-device-grayscale'] ?? '16');
   const deviceId = event.headers?.['x-device-id'] ?? 'unknown';
-
-  console.log(`Request from device ${deviceId}: ${width}x${height} gray${grayscale}`);
+  console.log(`Request from device ${deviceId}`);
 
   // Try today's image first, fall back to yesterday
   const today = new Date().toISOString().split('T')[0]!;
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]!;
 
   let dateStr = today;
-  let imageKey = `images/${dateStr}/${width}x${height}-gray${grayscale}.jpg`;
+  let imageKey = `images/${dateStr}/image.png`;
 
   if (!(await objectExists(bucketName, imageKey))) {
     dateStr = yesterday;
-    imageKey = `images/${dateStr}/${width}x${height}-gray${grayscale}.jpg`;
+    imageKey = `images/${dateStr}/image.png`;
 
     if (!(await objectExists(bucketName, imageKey))) {
       return {
@@ -62,7 +57,8 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
     body: JSON.stringify({
       image_url: imageUrl,
-      event_date: `${metadata.title ? metadata.date : dateStr}`,
+      event_date: metadata.date,
+      event_year: metadata.year,
       event_title: metadata.title,
       event_description: metadata.description,
       refresh_rate: 86400,

@@ -54,12 +54,14 @@ h1 {
   overflow: hidden;
   background: #1a1a1a;
   line-height: 0;
+  aspect-ratio: 16 / 9;
 }
 
 .image-container img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
+  object-fit: cover;
 }
 
 .event-info {

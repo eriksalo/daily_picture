@@ -48,6 +48,7 @@ DisplayData api_fetch_display(const char* base_url, const char* endpoint,
 
     data.image_url = doc["image_url"].as<String>();
     data.event_date = doc["event_date"].as<String>();
+    data.event_year = doc["event_year"] | 0;
     data.event_title = doc["event_title"].as<String>();
     data.event_description = doc["event_description"].as<String>();
     data.refresh_rate = doc["refresh_rate"] | 86400;

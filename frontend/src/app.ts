@@ -1,6 +1,7 @@
 interface DisplayResponse {
   image_url: string;
   event_date: string;
+  event_year: number;
   event_title: string;
   event_description: string;
   refresh_rate: number;
@@ -35,7 +36,7 @@ async function loadDailyImage(): Promise<void> {
     img.alt = data.event_title;
 
     document.getElementById('event-title')!.textContent = data.event_title;
-    document.getElementById('event-date')!.textContent = data.event_date;
+    document.getElementById('event-date')!.textContent = data.event_year ? String(data.event_year) : data.event_date;
     document.getElementById('event-description')!.textContent = data.event_description;
 
     loading.hidden = true;

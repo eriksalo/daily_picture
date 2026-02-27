@@ -1,25 +1,106 @@
 #include "display_driver.h"
-#include <HTTPClient.h>  // Must be before M5Unified for drawJpgUrl
+#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <M5Unified.h>
 #include <epdiy.h>
 
 void display_init() {
     M5.Display.setEpdMode(epd_mode_t::epd_quality);
-    M5.Display.setRotation(0);
+    M5.Display.setRotation(1); // Landscape: 960x540
     M5.Display.fillScreen(TFT_WHITE);
     M5.Display.setTextColor(TFT_BLACK, TFT_WHITE);
 }
 
-void display_show_image_url(const char* url) {
-    M5_LOGI("Drawing image from URL: %s", url);
+void display_show_image_url(const char* url, int year, const char* title) {
+    M5_LOGI("Downloading image (%d chars URL)", strlen(url));
+
+    // Download image data manually for better error handling
+    HTTPClient http;
+    WiFiClientSecure client;
+    client.setInsecure(); // Skip cert verification for S3 pre-signed URLs
+
+    http.begin(client, url);
+    http.setTimeout(30000);
+    int code = http.GET();
+
+    if (code != 200) {
+        M5_LOGE("Image HTTP %d", code);
+        http.end();
+        display_show_error("Image HTTP error");
+        return;
+    }
+
+    int len = http.getSize();
+    M5_LOGI("Image size: %d bytes", len);
+
+    // Read into PSRAM buffer
+    uint8_t* buf = (uint8_t*)ps_malloc(len > 0 ? len : 4 * 1024 * 1024);
+    if (!buf) {
+        M5_LOGE("Failed to allocate %d bytes", len);
+        http.end();
+        display_show_error("Out of memory");
+        return;
+    }
+
+    Stream* stream = http.getStreamPtr();
+    int total = 0;
+    uint32_t timeout = millis() + 30000;
+    while (http.connected() && (len < 0 || total < len) && millis() < timeout) {
+        int avail = stream->available();
+        if (avail > 0) {
+            int read = stream->readBytes(buf + total, avail);
+            total += read;
+        } else {
+            delay(10);
+        }
+    }
+    http.end();
+
+    M5_LOGI("Downloaded %d bytes, rendering...", total);
+
+    int dw = M5.Display.width();   // 960
+    int dh = M5.Display.height();  // 540
 
     M5.Display.fillScreen(TFT_WHITE);
 
-    bool ok = M5.Display.drawJpgUrl(url, 0, 0, M5.Display.width(), M5.Display.height());
+    // Scale 1024x1024 image to fit display height (540px), center horizontally
+    float scale = (float)dh / 1024.0f;  // 540/1024 ≈ 0.527
+    int imgW = (int)(1024 * scale);     // ≈ 540
+    int x = (dw - imgW) / 2;           // center: (960-540)/2 = 210
+    bool ok = M5.Display.drawPng(buf, total, x, 0, 0, 0, 0, 0, scale, scale);
+    free(buf);
+
     if (!ok) {
-        M5_LOGE("drawJpgUrl failed");
-        display_show_error("Image download failed");
+        M5_LOGE("drawPng decode failed");
+        display_show_error("PNG decode failed");
         return;
+    }
+
+    // Year overlay — large white text with black outline at bottom-left of image
+    if (year > 0) {
+        char yearStr[8];
+        snprintf(yearStr, sizeof(yearStr), "%d", year);
+
+        int textSize = 5;
+        M5.Display.setTextSize(textSize);
+
+        // Position: bottom-left of the image area with padding
+        int tx = x + 16;
+        int ty = dh - 16 - (textSize * 8); // 8px per text size unit
+
+        // Draw black outline (offset in 4 directions)
+        M5.Display.setTextColor(TFT_BLACK);
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
+                if (dx != 0 || dy != 0) {
+                    M5.Display.drawString(yearStr, tx + dx, ty + dy);
+                }
+            }
+        }
+
+        // Draw white text on top
+        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.drawString(yearStr, tx, ty);
     }
 
     M5.Display.display();

@@ -14,8 +14,10 @@ void setup() {
     auto cfg = M5.config();
     M5.begin(cfg);
 
+    delay(10000); // Debug: wait for serial monitor
     M5_LOGI("Daily Picture v%s starting...", FIRMWARE_VERSION);
     M5_LOGI("Battery: %.2f V", power_battery_voltage());
+    M5_LOGI("API: %s%s", API_BASE_URL, API_ENDPOINT);
 
     display_init();
     display_show_message("Daily Picture", "Connecting...");
@@ -63,13 +65,13 @@ void setup() {
         return;
     }
 
-    // Render image on e-ink display
-    display_show_image_url(data.image_url.c_str());
+    // Render image on e-ink display with year overlay
+    display_show_image_url(data.image_url.c_str(), data.event_year, data.event_title.c_str());
 
     // Clean up and sleep
     wifi_disconnect();
 
-    uint64_t sleep_time = data.refresh_rate > 0 ? data.refresh_rate : DEFAULT_SLEEP_SECONDS;
+    uint64_t sleep_time = 120; // Debug: 2 min sleep instead of 24h
     M5_LOGI("Sleeping for %llu seconds", sleep_time);
     power_enter_sleep(sleep_time);
 }

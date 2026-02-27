@@ -5,6 +5,7 @@
 struct DisplayData {
     String image_url;
     String event_date;
+    int event_year;
     String event_title;
     String event_description;
     uint32_t refresh_rate;  // seconds
