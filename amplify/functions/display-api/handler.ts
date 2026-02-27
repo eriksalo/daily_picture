@@ -15,11 +15,11 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]!;
 
   let dateStr = today;
-  let imageKey = `images/${dateStr}/image.png`;
+  let imageKey = `images/${dateStr}/image.jpg`;
 
   if (!(await objectExists(bucketName, imageKey))) {
     dateStr = yesterday;
-    imageKey = `images/${dateStr}/image.png`;
+    imageKey = `images/${dateStr}/image.jpg`;
 
     if (!(await objectExists(bucketName, imageKey))) {
       return {

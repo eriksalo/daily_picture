@@ -63,21 +63,13 @@ void display_show_image_url(const char* url, int year, const char* title) {
 
     M5.Display.fillScreen(TFT_WHITE);
 
-    // Scale 1792x1024 landscape image to fit display (960x540)
-    // 960/1792 ≈ 0.5357, 540/1024 ≈ 0.5273 — use smaller to fit fully
-    float scaleX = (float)dw / 1792.0f;
-    float scaleY = (float)dh / 1024.0f;
-    float scale = (scaleX < scaleY) ? scaleX : scaleY;
-    int imgW = (int)(1792 * scale);
-    int imgH = (int)(1024 * scale);
-    int xOff = (dw - imgW) / 2;
-    int yOff = (dh - imgH) / 2;
-    bool ok = M5.Display.drawPng(buf, total, xOff, yOff, 0, 0, 0, 0, scale, scale);
+    // Image is pre-sized to 960x540 JPEG by the server — draw directly
+    bool ok = M5.Display.drawJpg(buf, total, 0, 0, dw, dh);
     free(buf);
 
     if (!ok) {
-        M5_LOGE("drawPng decode failed");
-        display_show_error("PNG decode failed");
+        M5_LOGE("drawJpg decode failed");
+        display_show_error("JPEG decode failed");
         return;
     }
 

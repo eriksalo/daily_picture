@@ -2,6 +2,7 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import OpenAI from 'openai';
+import { Jimp } from 'jimp';
 import { getEventSelectionPrompt, getImageGenerationPrompt } from './prompts.js';
 
 const s3 = new S3Client();
@@ -46,12 +47,12 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
       dalle_prompt: string;
     };
 
-    // Step 2: Generate image with DALL-E 3
+    // Step 2: Generate image with DALL-E 3 (1024x1024, smallest that fits)
     const imageResponse = await openai.images.generate({
       model: 'dall-e-3',
       prompt: getImageGenerationPrompt(historicalEvent.dalle_prompt, style),
       n: 1,
-      size: '1792x1024',
+      size: '1024x1024',
       quality: 'hd',
       response_format: 'b64_json',
     });
@@ -60,15 +61,21 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     if (!b64) throw new Error('DALL-E returned no image data');
 
     const imageBuffer = Buffer.from(b64, 'base64');
-    console.log(`Image: ${imageBuffer.length} bytes`);
+    console.log(`DALL-E image: ${imageBuffer.length} bytes`);
 
-    // Step 3: Upload image for all display sizes (same source, devices scale locally)
-    const imageKey = `images/${dateStr}/image.png`;
+    // Step 3: Resize to 960x540 (device resolution) using jimp
+    const image = await Jimp.read(imageBuffer);
+    image.cover({ w: 960, h: 540 });
+    const jpegBuffer = await image.getBuffer('image/jpeg', { quality: 85 });
+    console.log(`Resized to 960x540 JPEG: ${jpegBuffer.length} bytes`);
+
+    // Upload device image (960x540 JPEG)
+    const imageKey = `images/${dateStr}/image.jpg`;
     await s3.send(new PutObjectCommand({
       Bucket: bucketName,
       Key: imageKey,
-      Body: imageBuffer,
-      ContentType: 'image/png',
+      Body: jpegBuffer,
+      ContentType: 'image/jpeg',
       CacheControl: 'public, max-age=86400',
     }));
     console.log(`Uploaded: ${imageKey}`);
