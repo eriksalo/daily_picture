@@ -13,16 +13,15 @@ Respond with ONLY valid JSON (no markdown, no code blocks):
 }
 
 The dalle_prompt should describe "the moment just before" the event happened.
-It MUST specify black and white / monochrome style.
-It should be visually rich and cinematic.
+It MUST specify photorealistic black and white / monochrome style — as if captured by a real camera.
+It should be visually rich, cinematic, and historically accurate with period-correct details.
 Do NOT include any text, labels, or dates in the image description.`;
 }
 
 export function getImageGenerationPrompt(dallePrompt: string): string {
   return `${dallePrompt}
 
-Style: High contrast black and white photograph, dramatic lighting, cinematic composition.
-The image must be entirely in grayscale/monochrome with no color.`;
+Style: Photorealistic black and white photograph, as if taken by a professional photojournalist with a real camera. Historically accurate period details. Dramatic lighting, cinematic composition. The image must be entirely in grayscale/monochrome with no color.`;
 }
 
 function monthName(month: number): string {

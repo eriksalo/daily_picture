@@ -63,11 +63,9 @@ void display_show_image_url(const char* url, int year, const char* title) {
 
     M5.Display.fillScreen(TFT_WHITE);
 
-    // Scale 1024x1024 image to fit display height (540px), center horizontally
-    float scale = (float)dh / 1024.0f;  // 540/1024 ≈ 0.527
-    int imgW = (int)(1024 * scale);     // ≈ 540
-    int x = (dw - imgW) / 2;           // center: (960-540)/2 = 210
-    bool ok = M5.Display.drawPng(buf, total, x, 0, 0, 0, 0, 0, scale, scale);
+    // Scale 1024x1024 image to fill display width (960px), crop bottom
+    float scale = (float)dw / 1024.0f;  // 960/1024 ≈ 0.9375
+    bool ok = M5.Display.drawPng(buf, total, 0, 0, dw, dh, 0, 0, scale, scale);
     free(buf);
 
     if (!ok) {
@@ -84,8 +82,8 @@ void display_show_image_url(const char* url, int year, const char* title) {
         int textSize = 5;
         M5.Display.setTextSize(textSize);
 
-        // Position: bottom-left of the image area with padding
-        int tx = x + 16;
+        // Position: bottom-left with padding
+        int tx = 16;
         int ty = dh - 16 - (textSize * 8); // 8px per text size unit
 
         // Draw black outline (offset in 4 directions)
