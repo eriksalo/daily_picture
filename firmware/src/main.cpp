@@ -14,10 +14,6 @@ void setup() {
     auto cfg = M5.config();
     M5.begin(cfg);
 
-    // Debug delay - gives time to attach serial monitor after reboot
-    Serial.begin(115200);
-    delay(5000);
-
     M5_LOGI("Daily Picture v%s starting...", FIRMWARE_VERSION);
     M5_LOGI("Battery: %.2f V", power_battery_voltage());
 
@@ -38,7 +34,7 @@ void setup() {
     if (!connected) {
         display_show_error("WiFi connection failed");
         delay(5000);
-        power_enter_sleep(60);
+        power_enter_sleep(DEFAULT_SLEEP_SECONDS);
         return;
     }
 
@@ -63,7 +59,7 @@ void setup() {
         display_show_error("API request failed");
         wifi_disconnect();
         delay(5000);
-        power_enter_sleep(60);
+        power_enter_sleep(DEFAULT_SLEEP_SECONDS);
         return;
     }
 
