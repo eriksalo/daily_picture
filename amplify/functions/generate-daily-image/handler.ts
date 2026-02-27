@@ -1,3 +1,4 @@
+// Daily image generation Lambda — GPT-4 + DALL-E 3
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import OpenAI from 'openai';
