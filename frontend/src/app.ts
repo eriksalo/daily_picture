@@ -6,8 +6,10 @@ interface DisplayResponse {
   refresh_rate: number;
 }
 
-const API_URL = '/api/display';
-const GENERATE_URL = '/api/generate';
+// API Gateway endpoint (separate from Amplify Hosting)
+const API_BASE = 'https://wets9esbwj.execute-api.us-east-1.amazonaws.com';
+const API_URL = `${API_BASE}/api/display`;
+const GENERATE_URL = `${API_BASE}/api/generate`;
 
 async function loadDailyImage(): Promise<void> {
   const loading = document.getElementById('loading')!;
