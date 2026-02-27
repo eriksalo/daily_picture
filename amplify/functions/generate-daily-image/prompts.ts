@@ -21,18 +21,18 @@ Do NOT include any text, labels, or dates in the image description.`;
 
 export function getImageGenerationPrompt(dallePrompt: string, style: string = 'art_deco'): string {
   const styles: Record<string, string> = {
-    art_deco: 'Art deco illustration, bold geometric shapes, strong lines, elegant and dramatic.',
-    woodcut: 'Woodcut print style, bold black lines, high contrast, dramatic cross-hatching.',
-    ink_wash: 'East Asian ink wash painting style, fluid brushstrokes, atmospheric, minimalist.',
-    noir: 'Film noir style, extreme high contrast, deep shadows, dramatic chiaroscuro lighting.',
-    sketch: 'Detailed pencil sketch, fine cross-hatching, architectural precision, hand-drawn feel.',
+    art_deco: 'Art deco illustration in GRAYSCALE ONLY, bold geometric shapes, strong lines, elegant and dramatic. No color whatsoever — only black, white, and shades of gray.',
+    woodcut: 'Woodcut print style in GRAYSCALE ONLY, bold black lines, high contrast, dramatic cross-hatching. No color whatsoever — only black, white, and shades of gray.',
+    ink_wash: 'East Asian ink wash painting in GRAYSCALE ONLY, fluid brushstrokes, atmospheric, minimalist. No color whatsoever — only black, white, and shades of gray.',
+    noir: 'Film noir style in GRAYSCALE ONLY, extreme high contrast, deep shadows, dramatic chiaroscuro lighting. No color whatsoever — only black, white, and shades of gray.',
+    sketch: 'Detailed pencil sketch in GRAYSCALE ONLY, fine cross-hatching, architectural precision, hand-drawn feel. No color whatsoever — only black, white, and shades of gray.',
   };
 
   const styleDesc = styles[style] ?? styles['art_deco'];
 
   return `${dallePrompt}
 
-Style: ${styleDesc} Black and white monochrome only. The depiction must show the ACTUAL recognizable real-world subject — not a generic substitute. Landscape composition.`;
+Style: ${styleDesc} CRITICAL: The entire image must be strictly grayscale/monochrome — absolutely NO color, NO sepia, NO tinted tones. Only black, white, and gray. The depiction must show the ACTUAL recognizable real-world subject — not a generic substitute. Landscape composition.`;
 }
 
 
