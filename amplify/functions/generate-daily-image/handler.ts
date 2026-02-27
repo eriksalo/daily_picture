@@ -44,7 +44,7 @@ export const handler = async (): Promise<void> => {
     response_format: 'b64_json',
   });
 
-  const b64 = imageResponse.data[0]?.b64_json;
+  const b64 = imageResponse.data?.[0]?.b64_json;
   if (!b64) throw new Error('DALL-E returned no image data');
 
   const sourceBuffer = Buffer.from(b64, 'base64');
