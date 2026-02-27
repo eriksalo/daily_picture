@@ -1,0 +1,9 @@
+#pragma once
+
+// WiFi credentials
+#define WIFI_SSID     "your-ssid"
+#define WIFI_PASSWORD "your-password"
+
+// Daily Picture API
+#define API_BASE_URL  "https://daily.salo.cloud"
+#define API_ENDPOINT  "/api/display"

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Picture</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Daily Picture</h1>
+      <p class="subtitle">The moment just before history happened</p>
+    </header>
+
+    <div id="loading" class="loading">Loading today's image...</div>
+
+    <div id="content" class="content" hidden>
+      <div class="image-container">
+        <img id="daily-image" alt="Today's historical event" />
+      </div>
+      <div class="event-info">
+        <h2 id="event-title"></h2>
+        <p id="event-date" class="event-date"></p>
+        <p id="event-description"></p>
+      </div>
+    </div>
+
+    <div id="error" class="error" hidden>
+      <p>Could not load today's image. Please try again later.</p>
+    </div>
+  </main>
+
+  <footer>
+    <p>Generated daily with AI. Images depict imagined moments before real historical events.</p>
+  </footer>
+
+  <script type="module" src="./app.ts"></script>
+</body>
+</html>
