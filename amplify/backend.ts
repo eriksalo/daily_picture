@@ -29,7 +29,7 @@ const displayIntegration = new HttpLambdaIntegration(
 const httpApi = new HttpApi(apiStack, 'DailyPictureHttpApi', {
   apiName: 'dailyPictureApi',
   corsPreflight: {
-    allowMethods: [CorsHttpMethod.GET],
+    allowMethods: [CorsHttpMethod.GET, CorsHttpMethod.POST],
     allowOrigins: ['*'],
     allowHeaders: [
       'Content-Type',
@@ -50,6 +50,18 @@ httpApi.addRoutes({
   path: '/api/display',
   methods: [HttpMethod.GET],
   integration: displayIntegration,
+});
+
+// Public POST /api/generate - trigger image generation manually
+const generateIntegration = new HttpLambdaIntegration(
+  'GenerateApiIntegration',
+  backend.generateDailyImage.resources.lambda,
+);
+
+httpApi.addRoutes({
+  path: '/api/generate',
+  methods: [HttpMethod.POST],
+  integration: generateIntegration,
 });
 
 // Export API URL for clients

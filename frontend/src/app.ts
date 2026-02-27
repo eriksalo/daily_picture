@@ -7,6 +7,7 @@ interface DisplayResponse {
 }
 
 const API_URL = '/api/display';
+const GENERATE_URL = '/api/generate';
 
 async function loadDailyImage(): Promise<void> {
   const loading = document.getElementById('loading')!;
@@ -44,4 +45,36 @@ async function loadDailyImage(): Promise<void> {
   }
 }
 
+async function generateImage(): Promise<void> {
+  const btn = document.getElementById('generate-btn') as HTMLButtonElement;
+  const status = document.getElementById('generate-status')!;
+
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  status.textContent = 'This may take up to 60 seconds. Calling GPT-4 + DALL-E 3...';
+
+  try {
+    const response = await fetch(GENERATE_URL, { method: 'POST' });
+    const data = await response.json();
+
+    if (!response.ok) {
+      status.textContent = `Generation failed: ${data.error}`;
+      btn.disabled = false;
+      btn.textContent = 'Retry';
+      return;
+    }
+
+    status.textContent = `Generated: ${data.title} (${data.year}). Reloading...`;
+    setTimeout(() => location.reload(), 1500);
+  } catch (err) {
+    status.textContent = `Error: ${err}`;
+    btn.disabled = false;
+    btn.textContent = 'Retry';
+  }
+}
+
+// Wire up generate button
+document.getElementById('generate-btn')?.addEventListener('click', generateImage);
+
+// Load on page load
 loadDailyImage();
