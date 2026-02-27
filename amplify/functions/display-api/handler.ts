@@ -1,12 +1,11 @@
-import type { APIGatewayProxyHandlerV2 } from 'aws-lambda';
+import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { S3Client, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { env } from '$amplify/env/display-api';
 
 const s3 = new S3Client();
 
-export const handler: APIGatewayProxyHandlerV2 = async (event) => {
-  const bucketName = env.DAILY_PICTURE_IMAGES_BUCKET_NAME;
+export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> => {
+  const bucketName = process.env.DAILY_PICTURE_IMAGES_BUCKET_NAME!;
 
   // Parse device headers
   const width = parseInt(event.headers?.['x-device-width'] ?? '960');
@@ -30,7 +29,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!(await objectExists(bucketName, imageKey))) {
       return {
         statusCode: 404,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
         body: JSON.stringify({ error: 'No image available' }),
       };
     }
@@ -60,10 +59,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   return {
     statusCode: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache',
-    },
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
     body: JSON.stringify({
       image_url: imageUrl,
       event_date: `${metadata.title ? metadata.date : dateStr}`,

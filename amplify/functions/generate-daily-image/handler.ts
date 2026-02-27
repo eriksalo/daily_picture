@@ -1,15 +1,13 @@
-import type { EventBridgeHandler } from 'aws-lambda';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import OpenAI from 'openai';
-import { env } from '$amplify/env/generate-daily-image';
-import { getEventSelectionPrompt, getImageGenerationPrompt } from './prompts';
-import { processImage } from './image-processor';
+import { getEventSelectionPrompt, getImageGenerationPrompt } from './prompts.js';
+import { processImage } from './image-processor.js';
 
 const s3 = new S3Client();
 
-export const handler: EventBridgeHandler<'Scheduled Event', null, void> = async () => {
-  const bucketName = env.DAILY_PICTURE_IMAGES_BUCKET_NAME;
-  const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+export const handler = async (): Promise<void> => {
+  const bucketName = process.env.DAILY_PICTURE_IMAGES_BUCKET_NAME!;
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const today = new Date();
   const dateStr = today.toISOString().split('T')[0]!;
