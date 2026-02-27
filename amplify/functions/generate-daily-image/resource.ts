@@ -11,7 +11,6 @@ export const generateDailyImage = defineFunction({
     OPENAI_API_KEY: secret('OPENAI_API_KEY'),
   },
   layers: {
-    // sharp must be externalized from esbuild and provided via layer
-    sharp: `arn:aws:lambda:\${AWS::Region}:477361877445:layer:sharp:3`,
+    sharp: 'arn:aws:lambda:us-east-1:477361877445:layer:sharp:3',
   },
 });
