@@ -4,6 +4,7 @@ interface DisplayResponse {
   event_year: number;
   event_title: string;
   event_description: string;
+  style: string;
   refresh_rate: number;
 }
 
@@ -40,6 +41,14 @@ async function loadDailyImage(): Promise<void> {
     document.getElementById('event-title')!.textContent = data.event_title;
     document.getElementById('event-date')!.textContent = data.event_year ? String(data.event_year) : data.event_date;
     document.getElementById('event-description')!.textContent = data.event_description;
+
+    // Highlight the style used for the current image
+    if (data.style) {
+      selectedStyle = data.style;
+      document.querySelectorAll('.style-btn').forEach((b) => {
+        b.classList.toggle('active', (b as HTMLElement).dataset.style === data.style);
+      });
+    }
 
     loading.hidden = true;
     content.hidden = false;

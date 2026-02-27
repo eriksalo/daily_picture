@@ -32,7 +32,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
 
   // Get metadata
   const metadataKey = `images/${dateStr}/metadata.json`;
-  let metadata = { date: dateStr, year: 0, title: '', description: '' };
+  let metadata = { date: dateStr, year: 0, title: '', description: '', style: 'art_deco' };
 
   try {
     const metadataObj = await s3.send(new GetObjectCommand({
@@ -61,6 +61,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       event_year: metadata.year,
       event_title: metadata.title,
       event_description: metadata.description,
+      style: metadata.style,
       refresh_rate: 86400,
     }),
   };
