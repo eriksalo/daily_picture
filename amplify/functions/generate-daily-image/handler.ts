@@ -53,7 +53,7 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
       prompt: getImageGenerationPrompt(historicalEvent.dalle_prompt, style),
       n: 1,
       size: '1024x1024',
-      quality: 'hd',
+      quality: 'standard',
       response_format: 'b64_json',
     });
 

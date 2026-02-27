@@ -78,7 +78,7 @@ async function generateImage(): Promise<void> {
     const data = await response.json();
 
     if (!response.ok) {
-      status.textContent = `Generation failed: ${data.error}`;
+      status.textContent = `Generation failed: ${data.error ?? data.message ?? response.statusText}`;
       btn.disabled = false;
       btn.textContent = 'Retry';
       return;
