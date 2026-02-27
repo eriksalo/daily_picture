@@ -10,7 +10,4 @@ export const generateDailyImage = defineFunction({
   environment: {
     OPENAI_API_KEY: secret('OPENAI_API_KEY'),
   },
-  layers: {
-    sharp: 'arn:aws:lambda:us-east-1:477361877445:layer:sharp:3',
-  },
 });

@@ -2,7 +2,6 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import OpenAI from 'openai';
 import { getEventSelectionPrompt, getImageGenerationPrompt } from './prompts.js';
-import { processImage } from './image-processor.js';
 
 const s3 = new S3Client();
 
@@ -50,22 +49,24 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     const b64 = imageResponse.data?.[0]?.b64_json;
     if (!b64) throw new Error('DALL-E returned no image data');
 
-    const sourceBuffer = Buffer.from(b64, 'base64');
-    console.log(`Source image: ${sourceBuffer.length} bytes`);
+    const imageBuffer = Buffer.from(b64, 'base64');
+    console.log(`Image: ${imageBuffer.length} bytes`);
 
-    // Step 3: Process into display variants with date overlay
-    const variants = await processImage(sourceBuffer, dateStr, historicalEvent.year);
+    // Step 3: Upload image for all display sizes (same source, devices scale locally)
+    const keys = [
+      `images/${dateStr}/960x540-gray16.jpg`,
+      `images/${dateStr}/1024x1024-gray256.jpg`,
+    ];
 
-    // Step 4: Upload all variants + metadata to S3
-    for (const variant of variants) {
+    for (const key of keys) {
       await s3.send(new PutObjectCommand({
         Bucket: bucketName,
-        Key: variant.key,
-        Body: variant.buffer,
-        ContentType: variant.contentType,
+        Key: key,
+        Body: imageBuffer,
+        ContentType: 'image/png',
         CacheControl: 'public, max-age=86400',
       }));
-      console.log(`Uploaded: ${variant.key} (${variant.buffer.length} bytes)`);
+      console.log(`Uploaded: ${key}`);
     }
 
     // Upload metadata
@@ -85,7 +86,7 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
       CacheControl: 'public, max-age=86400',
     }));
 
-    console.log(`Daily image generation complete for ${dateStr}: ${historicalEvent.title} (${historicalEvent.year})`);
+    console.log(`Done: ${historicalEvent.title} (${historicalEvent.year})`);
 
     if (isApiCall) {
       return {
