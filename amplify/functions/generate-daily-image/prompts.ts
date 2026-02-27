@@ -13,15 +13,16 @@ Respond with ONLY valid JSON (no markdown, no code blocks):
 }
 
 The dalle_prompt should describe "the moment just before" the event happened.
-It MUST specify photorealistic black and white / monochrome style — as if captured by a real camera.
-It should be visually rich, cinematic, and historically accurate with period-correct details.
+It MUST depict the REAL, recognizable location/building/person/object — use proper names (e.g. "the Reichstag building in Berlin" not "a government building").
+It MUST specify art deco illustration style in black and white / monochrome.
+It should be visually rich and dramatic.
 Do NOT include any text, labels, or dates in the image description.`;
 }
 
 export function getImageGenerationPrompt(dallePrompt: string): string {
   return `${dallePrompt}
 
-Style: Photorealistic black and white photograph, as if taken by a professional photojournalist with a real camera. Historically accurate period details. Dramatic lighting, cinematic composition. The image must be entirely in grayscale/monochrome with no color.`;
+Style: Art deco illustration, bold geometric shapes, strong lines, elegant and dramatic. Black and white monochrome only. The depiction must show the ACTUAL recognizable real-world subject — not a generic substitute.`;
 }
 
 function monthName(month: number): string {
