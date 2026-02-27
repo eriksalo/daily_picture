@@ -16,7 +16,16 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
   const month = today.getUTCMonth() + 1;
   const day = today.getUTCDate();
 
-  console.log(`Generating daily image for ${dateStr}`);
+  // Parse style from request body (POST) or default to art_deco
+  let style = 'art_deco';
+  if (isApiCall && event?.body) {
+    try {
+      const body = JSON.parse(event.body);
+      if (body.style) style = body.style;
+    } catch { /* ignore parse errors */ }
+  }
+
+  console.log(`Generating daily image for ${dateStr} (style: ${style})`);
 
   try {
     // Step 1: Ask GPT-4 to select a historical event
@@ -40,9 +49,9 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     // Step 2: Generate image with DALL-E 3
     const imageResponse = await openai.images.generate({
       model: 'dall-e-3',
-      prompt: getImageGenerationPrompt(historicalEvent.dalle_prompt),
+      prompt: getImageGenerationPrompt(historicalEvent.dalle_prompt, style),
       n: 1,
-      size: '1024x1024',
+      size: '1792x1024',
       quality: 'hd',
       response_format: 'b64_json',
     });
@@ -70,6 +79,7 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
       year: historicalEvent.year,
       title: historicalEvent.title,
       description: historicalEvent.description,
+      style,
       generated_at: new Date().toISOString(),
     };
 

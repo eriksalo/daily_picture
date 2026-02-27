@@ -24,12 +24,32 @@
         <p id="event-date" class="event-date"></p>
         <p id="event-description"></p>
       </div>
+      <div class="controls">
+        <div class="style-selector">
+          <button class="style-btn active" data-style="art_deco">Art Deco</button>
+          <button class="style-btn" data-style="woodcut">Woodcut</button>
+          <button class="style-btn" data-style="ink_wash">Ink Wash</button>
+          <button class="style-btn" data-style="noir">Noir</button>
+          <button class="style-btn" data-style="sketch">Sketch</button>
+        </div>
+        <button id="generate-btn" class="btn">Generate New Image</button>
+        <p id="generate-status" class="generate-status"></p>
+      </div>
     </div>
 
     <div id="error" class="error" hidden>
       <p>No image generated yet.</p>
-      <button id="generate-btn" class="btn">Generate Today's Picture</button>
-      <p id="generate-status" class="generate-status"></p>
+      <div class="controls">
+        <div class="style-selector">
+          <button class="style-btn active" data-style="art_deco">Art Deco</button>
+          <button class="style-btn" data-style="woodcut">Woodcut</button>
+          <button class="style-btn" data-style="ink_wash">Ink Wash</button>
+          <button class="style-btn" data-style="noir">Noir</button>
+          <button class="style-btn" data-style="sketch">Sketch</button>
+        </div>
+        <button id="generate-btn-error" class="btn">Generate Today's Picture</button>
+        <p id="generate-status-error" class="generate-status"></p>
+      </div>
     </div>
   </main>
 

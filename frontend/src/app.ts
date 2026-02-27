@@ -12,6 +12,8 @@ const API_BASE = 'https://wets9esbwj.execute-api.us-east-1.amazonaws.com';
 const API_URL = `${API_BASE}/api/display`;
 const GENERATE_URL = `${API_BASE}/api/generate`;
 
+let selectedStyle = 'art_deco';
+
 async function loadDailyImage(): Promise<void> {
   const loading = document.getElementById('loading')!;
   const content = document.getElementById('content')!;
@@ -20,7 +22,7 @@ async function loadDailyImage(): Promise<void> {
   try {
     const response = await fetch(API_URL, {
       headers: {
-        'X-Device-Width': '1024',
+        'X-Device-Width': '1792',
         'X-Device-Height': '1024',
         'X-Device-Grayscale': '256',
         'X-Device-Id': 'web-browser',
@@ -49,15 +51,21 @@ async function loadDailyImage(): Promise<void> {
 }
 
 async function generateImage(): Promise<void> {
-  const btn = document.getElementById('generate-btn') as HTMLButtonElement;
-  const status = document.getElementById('generate-status')!;
+  const btn = document.querySelector('.controls .btn:not([disabled])') as HTMLButtonElement;
+  const status = document.querySelector('.controls .generate-status') as HTMLElement;
+
+  if (!btn || !status) return;
 
   btn.disabled = true;
   btn.textContent = 'Generating...';
-  status.textContent = 'This may take up to 60 seconds. Calling GPT-4 + DALL-E 3...';
+  status.textContent = `Generating ${selectedStyle.replace('_', ' ')} style... This may take up to 60 seconds.`;
 
   try {
-    const response = await fetch(GENERATE_URL, { method: 'POST' });
+    const response = await fetch(GENERATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ style: selectedStyle }),
+    });
     const data = await response.json();
 
     if (!response.ok) {
@@ -76,8 +84,18 @@ async function generateImage(): Promise<void> {
   }
 }
 
-// Wire up generate button
+// Wire up style buttons
+document.querySelectorAll('.style-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.style-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedStyle = (btn as HTMLElement).dataset.style ?? 'art_deco';
+  });
+});
+
+// Wire up generate buttons
 document.getElementById('generate-btn')?.addEventListener('click', generateImage);
+document.getElementById('generate-btn-error')?.addEventListener('click', generateImage);
 
 // Load on page load
 loadDailyImage();
