@@ -2,6 +2,7 @@
 #include <HTTPClient.h>  // Must be included before M5Unified for drawJpgUrl support
 #include <M5Unified.h>
 #include <epdiy.h>       // Required for PaperS3 e-ink driver
+#include <time.h>
 
 #include "config.h"
 #include "display_config.h"
@@ -10,14 +11,55 @@
 #include "display_driver.h"
 #include "power_manager.h"
 
+// Wake target: 4:00 AM MST = 11:00 UTC
+#define WAKE_HOUR_UTC 11
+#define WAKE_MIN_UTC  0
+
+// Calculate seconds until next wake time using NTP
+uint64_t seconds_until_wake() {
+    configTzTime("MST7MDT", "pool.ntp.org", "time.nist.gov");
+
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo, 10000)) {
+        M5_LOGW("NTP sync failed, using default 24h sleep");
+        return DEFAULT_SLEEP_SECONDS;
+    }
+
+    // Work in UTC for wake target
+    time_t now;
+    time(&now);
+    struct tm utc;
+    gmtime_r(&now, &utc);
+
+    // Calculate next 11:00 UTC
+    struct tm wake = utc;
+    wake.tm_hour = WAKE_HOUR_UTC;
+    wake.tm_min = WAKE_MIN_UTC;
+    wake.tm_sec = 0;
+
+    time_t wake_time = mktime(&wake);
+    // mktime interprets as local, so convert back
+    // Simpler: just calculate seconds directly
+    int now_secs = utc.tm_hour * 3600 + utc.tm_min * 60 + utc.tm_sec;
+    int wake_secs = WAKE_HOUR_UTC * 3600 + WAKE_MIN_UTC * 60;
+
+    int diff = wake_secs - now_secs;
+    if (diff <= 300) {  // If wake time is <5 min away or past, sleep until tomorrow
+        diff += 86400;
+    }
+
+    M5_LOGI("Current UTC: %02d:%02d:%02d, wake at %02d:%02d UTC, sleeping %d seconds",
+            utc.tm_hour, utc.tm_min, utc.tm_sec, WAKE_HOUR_UTC, WAKE_MIN_UTC, diff);
+
+    return (uint64_t)diff;
+}
+
 void setup() {
     auto cfg = M5.config();
     M5.begin(cfg);
 
-    delay(10000); // Debug: wait for serial monitor
     M5_LOGI("Daily Picture v%s starting...", FIRMWARE_VERSION);
     M5_LOGI("Battery: %.2f V", power_battery_voltage());
-    M5_LOGI("API: %s%s", API_BASE_URL, API_ENDPOINT);
 
     display_init();
     display_show_message("Daily Picture", "Connecting...");
@@ -68,11 +110,12 @@ void setup() {
     // Render image on e-ink display with year overlay
     display_show_image_url(data.image_url.c_str(), data.event_year, data.event_title.c_str());
 
+    // Calculate sleep until 4:00 AM MST (11:00 UTC)
+    uint64_t sleep_time = seconds_until_wake();
+
     // Clean up and sleep
     wifi_disconnect();
-
-    uint64_t sleep_time = 120; // Debug: 2 min sleep instead of 24h
-    M5_LOGI("Sleeping for %llu seconds", sleep_time);
+    M5_LOGI("Sleeping for %llu seconds (~%.1f hours)", sleep_time, sleep_time / 3600.0);
     power_enter_sleep(sleep_time);
 }
 
