@@ -8,6 +8,6 @@ export const generateDailyImage = defineFunction({
   memoryMB: 1024,
   runtime: 20,
   environment: {
-    OPENAI_API_KEY: secret('OPENAI_API_KEY'),
+    GOOGLE_API_KEY: secret('GOOGLE_API_KEY'),
   },
 });

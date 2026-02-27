@@ -1,15 +1,15 @@
-// Daily image generation Lambda — GPT-4 + DALL-E 3
+// Daily image generation Lambda — Gemini 3 Flash + Nano Banana 2
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import { Jimp } from 'jimp';
-import { getEventSelectionPrompt, getImageGenerationPrompt } from './prompts.js';
+import { getEventSelectionPrompt, getImageGenerationPrompt, monthName } from './prompts.js';
 
 const s3 = new S3Client();
 
 export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | APIGatewayProxyResultV2> => {
   const bucketName = process.env.DAILY_PICTURE_IMAGES_BUCKET_NAME!;
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
   const isApiCall = event?.requestContext?.http !== undefined;
 
   const today = new Date();
@@ -29,39 +29,68 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
   console.log(`Generating daily image for ${dateStr} (style: ${style})`);
 
   try {
-    // Step 1: Ask GPT-4 to select a historical event
-    const eventResponse = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [{ role: 'user', content: getEventSelectionPrompt(month, day) }],
-      temperature: 0.9,
-      max_tokens: 500,
+    // Step 1: Ask Gemini 3 Flash to select a historical event
+    const eventResponse = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: getEventSelectionPrompt(month, day),
+      config: {
+        temperature: 0.9,
+        maxOutputTokens: 500,
+        thinkingConfig: { thinkingBudget: 0 },
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'OBJECT',
+          properties: {
+            year: { type: 'INTEGER' },
+            title: { type: 'STRING' },
+            description: { type: 'STRING' },
+            image_prompt: { type: 'STRING' },
+          },
+          required: ['year', 'title', 'description', 'image_prompt'],
+        },
+      },
     });
 
-    const eventText = eventResponse.choices[0]?.message?.content ?? '';
-    console.log('GPT-4 response:', eventText);
+    // Extract text from response parts, skipping any thinking parts
+    const outputParts = eventResponse.candidates?.[0]?.content?.parts ?? [];
+    console.log('Response parts:', JSON.stringify(outputParts.map((p: any) => ({ hasText: !!p.text, thought: p.thought, len: p.text?.length }))));
+    const eventText = outputParts
+      .filter((p: any) => p.text && !p.thought)
+      .map((p: any) => p.text)
+      .join('');
+    console.log('Gemini event response:', eventText);
 
-    const historicalEvent = JSON.parse(eventText) as {
-      year: number;
-      title: string;
-      description: string;
-      dalle_prompt: string;
-    };
+    let historicalEvent: { year: number; title: string; description: string; image_prompt: string };
+    try {
+      historicalEvent = JSON.parse(eventText);
+    } catch (parseErr) {
+      console.error('JSON parse failed. Raw text (first 200 chars):', eventText.substring(0, 200));
+      console.error('All parts text:', outputParts.map((p: any) => p.text?.substring(0, 100)));
+      throw parseErr;
+    }
 
-    // Step 2: Generate image with DALL-E 3 (1024x1024, smallest that fits)
-    const imageResponse = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt: getImageGenerationPrompt(historicalEvent.dalle_prompt, style),
-      n: 1,
-      size: '1024x1024',
-      quality: 'standard',
-      response_format: 'b64_json',
+
+    // Step 2: Generate image with Nano Banana 2 (native 16:9)
+    const dateLabel = `${monthName(month)} ${day}`;
+    const imagePrompt = getImageGenerationPrompt(historicalEvent.image_prompt, style, dateLabel, historicalEvent.title);
+    const imageResponse = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-image-preview',
+      contents: imagePrompt,
+      config: {
+        responseModalities: ['IMAGE'],
+        imageConfig: {
+          aspectRatio: '16:9',
+        },
+      },
     });
 
-    const b64 = imageResponse.data?.[0]?.b64_json;
-    if (!b64) throw new Error('DALL-E returned no image data');
+    // Extract base64 image from response
+    const parts = imageResponse.candidates?.[0]?.content?.parts ?? [];
+    const imagePart = parts.find((p: any) => p.inlineData?.mimeType?.startsWith('image/'));
+    if (!imagePart?.inlineData?.data) throw new Error('Gemini returned no image data');
 
-    const imageBuffer = Buffer.from(b64, 'base64');
-    console.log(`DALL-E image: ${imageBuffer.length} bytes`);
+    const imageBuffer = Buffer.from(imagePart.inlineData.data, 'base64');
+    console.log(`Gemini image: ${imageBuffer.length} bytes (${imagePart.inlineData.mimeType})`);
 
     // Step 3: Resize to 960x540 (device resolution) using jimp
     const image = await Jimp.read(imageBuffer);
