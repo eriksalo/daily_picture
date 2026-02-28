@@ -9,17 +9,21 @@ Respond with ONLY valid JSON (no markdown, no code blocks):
   "year": 1969,
   "title": "Apollo 11 Moon Landing",
   "description": "Neil Armstrong and Buzz Aldrin became the first humans to walk on the Moon.",
-  "image_prompt": "A photorealistic black and white scene showing two astronauts in spacesuits standing at the door of a lunar module, about to step onto the Moon's surface, Earth visible in the dark sky above the barren lunar landscape, dramatic lighting from the sun casting long shadows"
+  "image_prompt": "A photorealistic black and white scene inside the Apollo 11 Lunar Module Eagle, Neil Armstrong in his spacesuit reaching toward the hatch handle, Buzz Aldrin behind him checking instruments, the Moon's surface visible through the small triangular window but no one has stepped outside yet, Earth glowing in the black sky, tense anticipation before the first step"
 }
 
-The image_prompt should describe "the moment just before" the event happened in LANDSCAPE orientation.
+The image_prompt MUST depict THE MOMENT JUST BEFORE the event happens — NOT the event itself.
+Show the tension, anticipation, and calm before the storm. The event has NOT yet occurred.
+Examples: for a moon landing, show the astronaut reaching for the hatch (not stepping on the surface); for an assassination, show the crowd gathering moments before (not the shot); for a volcano eruption, show the rumbling mountain with birds fleeing (not the eruption itself).
+The scene should feel pregnant with what is about to happen — the viewer knows what comes next but it hasn't happened yet.
+Use LANDSCAPE orientation.
 It MUST depict the ACTUAL REAL recognizable location/building/person/object with accurate architectural and geographic details.
 Use proper names and describe distinctive real features (e.g. "the Reichstag building in Berlin with its distinctive glass dome and neoclassical columns" not "a government building").
 It should be visually rich, dramatic, and composed for a wide landscape frame.
 Do NOT include any text, labels, or dates in the image description.`;
 }
 
-export function getImageGenerationPrompt(imagePrompt: string, style: string = 'art_deco', dateLabel?: string, title?: string): string {
+export function getImageGenerationPrompt(imagePrompt: string, style: string = 'art_deco', dateLabel?: string, title?: string, year?: number): string {
   const styles: Record<string, string> = {
     art_deco: 'Art deco illustration in GRAYSCALE ONLY, bold geometric shapes, strong lines, elegant and dramatic. No color whatsoever — only black, white, and shades of gray.',
     woodcut: 'Woodcut print style in GRAYSCALE ONLY, bold black lines, high contrast, dramatic cross-hatching. No color whatsoever — only black, white, and shades of gray.',
@@ -30,8 +34,9 @@ export function getImageGenerationPrompt(imagePrompt: string, style: string = 'a
 
   const styleDesc = styles[style] ?? styles['art_deco'];
 
-  const textOverlay = dateLabel && title
-    ? `\n\nINCLUDE TEXT ON THE IMAGE: At the bottom of the image, place a dark semi-transparent banner. On it, render "${dateLabel}" in small clean white sans-serif text, and below it "${title}" in larger bold white sans-serif text. The text must be perfectly legible and spelled exactly as given.`
+  const dateLine = dateLabel && year ? `${dateLabel}, ${year}` : dateLabel ?? '';
+  const textOverlay = dateLine && title
+    ? `\n\nINCLUDE TEXT ON THE IMAGE: At the bottom of the image, place a dark semi-transparent banner. On it, render "${dateLine}" in small clean white sans-serif text, and below it "${title}" in larger bold white sans-serif text. The text must be perfectly legible and spelled exactly as given.`
     : '';
 
   return `${imagePrompt}
