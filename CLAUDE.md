@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Daily Picture generates AI historical event images (GPT-4o + DALL-E 3) and serves them to e-ink displays. Three components: AWS Amplify Gen 2 backend, Vite frontend at daily.salo.cloud, and ESP32-S3 firmware for M5Stack PaperS3 (960x540, 16-level grayscale).
+Daily Picture generates AI historical event images (Gemini 3 Flash + Nano Banana 2) and serves them to displays. Four components: AWS Amplify Gen 2 backend, Vite frontend at daily.salo.cloud, ESP32-S3 firmware for M5Stack PaperS3 (960x540, 16-level grayscale), and Frameo digital photo frame support (1280x800, color).
 
 ## Commands
 
@@ -35,15 +35,23 @@ Push to GitHub triggers Amplify Hosting (frontend only via `amplify.yml`). Backe
 
 ## Architecture
 
-**Pull-based flow**: Lambda generates image daily → stores 960x540 JPEG + metadata.json in S3 → device wakes → `GET /api/display` returns pre-signed S3 URL → device downloads JPEG → renders on e-ink → sleeps 24h.
+**Pull-based flow**: Lambda generates images daily → stores JPEG variants + metadata.json in S3 → devices pull via API.
 
 **API Gateway v2 (HTTP API)** — public, no auth:
-- `GET /api/display` — returns image URL + event metadata (display-api Lambda)
+- `GET /api/display` — returns e-ink image URL + event metadata (display-api Lambda)
+- `GET /api/display?device=frameo` — returns Frameo color image URL
 - `POST /api/generate` — triggers image generation with optional `{"style":"art_deco"}` body (generate-daily-image Lambda)
 
-**Image pipeline**: GPT-4o selects historical event → DALL-E 3 generates 1024x1024 → jimp resizes to 960x540 JPEG → S3. All images strictly grayscale (enforced in prompts).
+**Image pipeline**: Gemini 3 Flash selects historical event → Nano Banana 2 generates grayscale 16:9 → jimp resizes to 960x540 → then generates color 16:9 → jimp resizes to 1280x800 → both to S3.
 
-**S3 layout**: `images/YYYY-MM-DD/image.jpg` + `images/YYYY-MM-DD/metadata.json`
+**S3 layout**:
+```
+images/YYYY-MM-DD/image.jpg          # 960x540 grayscale (e-ink)
+images/YYYY-MM-DD/image-frameo.jpg   # 1280x800 color (Frameo)
+images/YYYY-MM-DD/metadata.json      # includes frameo_image_key
+```
+
+**Frameo push**: `scripts/push-to-frameo.sh <frame-ip>` — uses ADB over local network to push image to frame. Requires `adb`, `curl`, `jq`. No internet-only option exists for Frameo frames.
 
 **Styles**: art_deco, woodcut, ink_wash, noir, sketch — defined in `amplify/functions/generate-daily-image/prompts.ts`
 
@@ -60,11 +68,12 @@ Push to GitHub triggers Amplify Hosting (frontend only via `amplify.yml`). Backe
 ## File Layout
 
 - `amplify/backend.ts` — CDK: HTTP API routes, CORS, Lambda integrations
-- `amplify/functions/generate-daily-image/handler.ts` — Core generation: GPT-4o → DALL-E 3 → jimp → S3
-- `amplify/functions/generate-daily-image/prompts.ts` — GPT-4 and DALL-E prompt templates with style system
+- `amplify/functions/generate-daily-image/handler.ts` — Core generation: Gemini → Nano Banana 2 → jimp → S3 (grayscale + color)
+- `amplify/functions/generate-daily-image/prompts.ts` — Gemini prompt templates with grayscale + color style systems
 - `amplify/functions/display-api/handler.ts` — Device API: pre-signed URL + metadata, yesterday fallback
 - `amplify/storage/resource.ts` — S3 bucket, access grants (Lambda read/write, guest read)
 - `frontend/src/app.ts` — Fetch display data, style selector, generate button
 - `firmware/src/main.cpp` — Boot → WiFi → API → display → sleep
 - `firmware/include/config.h` — WiFi creds + API URL (gitignored, copy from config.h.example)
 - `firmware/include/display_config.h` — Display params, timeouts, sleep duration
+- `scripts/push-to-frameo.sh` — ADB-based push script for Frameo frames

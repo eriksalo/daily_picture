@@ -1,5 +1,6 @@
 interface DisplayResponse {
   image_url: string;
+  frameo_image_url?: string;
   event_date: string;
   event_year: number;
   event_title: string;
@@ -34,9 +35,25 @@ async function loadDailyImage(): Promise<void> {
 
     const data: DisplayResponse = await response.json();
 
-    const img = document.getElementById('daily-image') as HTMLImageElement;
-    img.src = data.image_url;
-    img.alt = data.event_title;
+    const singleImage = document.getElementById('single-image')!;
+    const dualImages = document.getElementById('dual-images')!;
+
+    if (data.frameo_image_url) {
+      // Show both variants side by side
+      singleImage.hidden = true;
+      dualImages.hidden = false;
+      const colorImg = document.getElementById('color-image') as HTMLImageElement;
+      const einkImg = document.getElementById('eink-image') as HTMLImageElement;
+      colorImg.src = data.frameo_image_url;
+      colorImg.alt = data.event_title;
+      einkImg.src = data.image_url;
+      einkImg.alt = `${data.event_title} (grayscale)`;
+    } else {
+      // Only grayscale available
+      const img = document.getElementById('daily-image') as HTMLImageElement;
+      img.src = data.image_url;
+      img.alt = data.event_title;
+    }
 
     document.getElementById('event-title')!.textContent = data.event_title;
     document.getElementById('event-date')!.textContent = data.event_year ? String(data.event_year) : data.event_date;

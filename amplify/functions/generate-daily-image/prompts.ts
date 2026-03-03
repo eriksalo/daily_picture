@@ -45,6 +45,27 @@ Style: ${styleDesc} CRITICAL: The entire image must be strictly grayscale/monoch
 }
 
 
+export function getColorImageGenerationPrompt(imagePrompt: string, style: string = 'art_deco', dateLabel?: string, title?: string, year?: number): string {
+  const styles: Record<string, string> = {
+    art_deco: 'Art deco illustration with rich gold, teal, and deep burgundy palette. Bold geometric shapes, strong lines, elegant and dramatic with luxurious metallic accents.',
+    woodcut: 'Woodcut print style with warm wood tones — burnt sienna, amber, and deep mahogany. Bold black outlines, high contrast, dramatic cross-hatching with earthy color fills.',
+    ink_wash: 'East Asian ink wash painting with indigo and sepia washes, fluid brushstrokes, atmospheric. Subtle gradients of blue-black ink with warm paper tones showing through.',
+    noir: 'Film noir style with a muted desaturated palette punctuated by selective color — a single red element, amber streetlight glow, or cool blue moonlight against deep shadows.',
+    sketch: 'Detailed illustration with soft watercolor washes over fine pencil lines. Gentle earth tones, muted greens, warm yellows, and dusty rose accents. Hand-drawn feel.',
+  };
+
+  const styleDesc = styles[style] ?? styles['art_deco'];
+
+  const dateLine = dateLabel && year ? `${dateLabel}, ${year}` : dateLabel ?? '';
+  const textOverlay = dateLine && title
+    ? `\n\nINCLUDE TEXT ON THE IMAGE: At the bottom of the image, place a dark semi-transparent banner. On it, render "${dateLine}" in small clean white sans-serif text, and below it "${title}" in larger bold white sans-serif text. The text must be perfectly legible and spelled exactly as given.`
+    : '';
+
+  return `${imagePrompt}
+
+Style: ${styleDesc} The depiction must show the ACTUAL recognizable real-world subject — not a generic substitute. Landscape composition.${textOverlay}`;
+}
+
 export function monthName(month: number): string {
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',

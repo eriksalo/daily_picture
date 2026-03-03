@@ -16,8 +16,22 @@
     <div id="loading" class="loading">Loading today's image...</div>
 
     <div id="content" class="content" hidden>
-      <div class="image-container">
+      <div id="single-image" class="image-container">
         <img id="daily-image" alt="Today's historical event" />
+      </div>
+      <div id="dual-images" class="image-grid" hidden>
+        <div class="image-variant">
+          <p class="variant-label">Color (Frameo 1280x800)</p>
+          <div class="image-container">
+            <img id="color-image" alt="Color variant" />
+          </div>
+        </div>
+        <div class="image-variant">
+          <p class="variant-label">Grayscale (e-ink 960x540)</p>
+          <div class="image-container">
+            <img id="eink-image" alt="Grayscale variant" />
+          </div>
+        </div>
       </div>
       <div class="event-info">
         <h2 id="event-title"></h2>

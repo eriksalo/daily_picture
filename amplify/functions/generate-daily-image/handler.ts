@@ -3,7 +3,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { GoogleGenAI } from '@google/genai';
 import { Jimp } from 'jimp';
-import { getEventSelectionPrompt, getImageGenerationPrompt, monthName } from './prompts.js';
+import { getEventSelectionPrompt, getImageGenerationPrompt, getColorImageGenerationPrompt, monthName } from './prompts.js';
 
 const s3 = new S3Client();
 
@@ -109,6 +109,47 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     }));
     console.log(`Uploaded: ${imageKey}`);
 
+    // Step 4: Generate color image for Frameo frame (same event, color style)
+    const colorPrompt = getColorImageGenerationPrompt(historicalEvent.image_prompt, style, dateLabel, historicalEvent.title, historicalEvent.year);
+    const colorResponse = await ai.models.generateContent({
+      model: 'gemini-3.1-flash-image-preview',
+      contents: colorPrompt,
+      config: {
+        responseModalities: ['IMAGE'],
+        imageConfig: {
+          aspectRatio: '16:9',
+        },
+      },
+    });
+
+    const colorParts = colorResponse.candidates?.[0]?.content?.parts ?? [];
+    const colorImagePart = colorParts.find((p: any) => p.inlineData?.mimeType?.startsWith('image/'));
+    let frameoImageKey: string | undefined;
+
+    if (colorImagePart?.inlineData?.data) {
+      const colorBuffer = Buffer.from(colorImagePart.inlineData.data, 'base64');
+      console.log(`Gemini color image: ${colorBuffer.length} bytes`);
+
+      // Step 5: Resize to 1280x800 (Frameo resolution) — 16:9 source cropped to 16:10
+      const colorImage = await Jimp.read(colorBuffer);
+      colorImage.cover({ w: 1280, h: 800 });
+      const frameoBuffer = await colorImage.getBuffer('image/jpeg', { quality: 90 });
+      console.log(`Resized to 1280x800 JPEG: ${frameoBuffer.length} bytes`);
+
+      // Step 6: Upload Frameo image
+      frameoImageKey = `images/${dateStr}/image-frameo.jpg`;
+      await s3.send(new PutObjectCommand({
+        Bucket: bucketName,
+        Key: frameoImageKey,
+        Body: frameoBuffer,
+        ContentType: 'image/jpeg',
+        CacheControl: 'public, max-age=86400',
+      }));
+      console.log(`Uploaded: ${frameoImageKey}`);
+    } else {
+      console.warn('Gemini returned no color image data — skipping Frameo variant');
+    }
+
     // Upload metadata
     const metadata = {
       date: dateStr,
@@ -116,6 +157,7 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
       title: historicalEvent.title,
       description: historicalEvent.description,
       style,
+      frameo_image_key: frameoImageKey,
       generated_at: new Date().toISOString(),
     };
 

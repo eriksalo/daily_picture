@@ -15,7 +15,7 @@ body {
 
 main {
   flex: 1;
-  max-width: 800px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1rem;
   width: 100%;
@@ -62,6 +62,30 @@ h1 {
   height: 100%;
   display: block;
   object-fit: cover;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.image-variant .image-container {
+  aspect-ratio: 16 / 9;
+}
+
+.variant-label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+@media (max-width: 700px) {
+  .image-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .event-info {
