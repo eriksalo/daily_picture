@@ -13,18 +13,6 @@
       object-fit: contain;
       display: block;
     }
-    .caption {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 1rem 1.5rem;
-      background: linear-gradient(transparent, rgba(0,0,0,0.8));
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    .caption h2 { font-size: 1.2rem; font-weight: 400; }
-    .caption p { font-size: 0.8rem; color: #aaa; margin-top: 0.2rem; }
     .error {
       color: #666;
       text-align: center;
@@ -36,10 +24,6 @@
 </head>
 <body>
   <img id="photo" alt="" />
-  <div class="caption" id="caption" hidden>
-    <h2 id="title"></h2>
-    <p id="year"></p>
-  </div>
   <div class="error" id="error" hidden>No image available</div>
   <script>
     var API = 'https://wets9esbwj.execute-api.us-east-1.amazonaws.com/api/display?device=frameo';
@@ -53,9 +37,6 @@
           try {
             var data = JSON.parse(xhr.responseText);
             document.getElementById('photo').src = data.image_url;
-            document.getElementById('title').textContent = data.event_title;
-            document.getElementById('year').textContent = data.event_year || '';
-            document.getElementById('caption').hidden = false;
             document.getElementById('error').hidden = true;
           } catch (e) {
             document.getElementById('error').hidden = false;
