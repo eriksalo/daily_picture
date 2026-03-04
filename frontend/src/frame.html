@@ -42,21 +42,29 @@
   </div>
   <div class="error" id="error" hidden>No image available</div>
   <script>
-    const API = 'https://wets9esbwj.execute-api.us-east-1.amazonaws.com/api/display?device=frameo';
+    var API = 'https://wets9esbwj.execute-api.us-east-1.amazonaws.com/api/display?device=frameo';
 
-    async function load() {
-      try {
-        const res = await fetch(API);
-        if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
-        document.getElementById('photo').src = data.image_url;
-        document.getElementById('title').textContent = data.event_title;
-        document.getElementById('year').textContent = data.event_year || '';
-        document.getElementById('caption').hidden = false;
-        document.getElementById('error').hidden = true;
-      } catch {
-        document.getElementById('error').hidden = false;
-      }
+    function load() {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', API, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status === 200) {
+          try {
+            var data = JSON.parse(xhr.responseText);
+            document.getElementById('photo').src = data.image_url;
+            document.getElementById('title').textContent = data.event_title;
+            document.getElementById('year').textContent = data.event_year || '';
+            document.getElementById('caption').hidden = false;
+            document.getElementById('error').hidden = true;
+          } catch (e) {
+            document.getElementById('error').hidden = false;
+          }
+        } else {
+          document.getElementById('error').hidden = false;
+        }
+      };
+      xhr.send();
     }
 
     load();
