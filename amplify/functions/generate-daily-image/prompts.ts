@@ -36,7 +36,7 @@ export function getImageGenerationPrompt(imagePrompt: string, style: string = 'a
 
   const dateLine = dateLabel && year ? `${dateLabel}, ${year}` : dateLabel ?? '';
   const textOverlay = dateLine && title
-    ? `\n\nINCLUDE TEXT ON THE IMAGE: At the bottom of the image, place a dark semi-transparent banner. On it, render "${dateLine}" in small clean white sans-serif text, and below it "${title}" in larger bold white sans-serif text. The text must be perfectly legible and spelled exactly as given.`
+    ? `\n\nINCLUDE TEXT ON THE IMAGE: In the exact center of the image, render "${title}" in large bold white sans-serif text, and directly below it "${dateLine}" in large white sans-serif text. Use a subtle dark drop shadow for legibility. The text must be perfectly legible and spelled exactly as given. Do NOT place any text in the corners or along the edges — text must ONLY appear in the center.`
     : '';
 
   return `${imagePrompt}
@@ -58,7 +58,7 @@ export function getColorImageGenerationPrompt(imagePrompt: string, style: string
 
   const dateLine = dateLabel && year ? `${dateLabel}, ${year}` : dateLabel ?? '';
   const textOverlay = dateLine && title
-    ? `\n\nINCLUDE TEXT ON THE IMAGE: At the bottom of the image, place a dark semi-transparent banner. On it, render "${dateLine}" in small clean white sans-serif text, and below it "${title}" in larger bold white sans-serif text. The text must be perfectly legible and spelled exactly as given.`
+    ? `\n\nINCLUDE TEXT ON THE IMAGE: In the exact center of the image, render "${title}" in large bold white sans-serif text, and directly below it "${dateLine}" in large white sans-serif text. Use a subtle dark drop shadow for legibility. The text must be perfectly legible and spelled exactly as given. Do NOT place any text in the corners or along the edges — text must ONLY appear in the center.`
     : '';
 
   return `${imagePrompt}
