@@ -14,3 +14,10 @@ frontend:
   cache:
     paths:
       - node_modules/**/*
+  customHeaders:
+    - pattern: '*.appcache'
+      headers:
+        - key: Content-Type
+          value: text/cache-manifest
+        - key: Cache-Control
+          value: no-cache

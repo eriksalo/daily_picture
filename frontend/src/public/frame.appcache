@@ -1,0 +1,8 @@
+CACHE MANIFEST
+# v1 - Daily Picture frame with offline WiFi support
+
+CACHE:
+frame.html
+
+NETWORK:
+*
