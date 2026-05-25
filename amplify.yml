@@ -5,10 +5,10 @@ applications:
       phases:
         preBuild:
           commands:
-            - cd frontend && npm install
+            - npm --prefix frontend install
         build:
           commands:
-            - cd frontend && npm run build
+            - npm --prefix frontend run build
       artifacts:
         baseDirectory: frontend/dist
         files:
@@ -28,10 +28,10 @@ applications:
       phases:
         preBuild:
           commands:
-            - cd frontend && npm install
+            - npm --prefix frontend install
         build:
           commands:
-            - cd frontend && npm run build
+            - npm --prefix frontend run build
       artifacts:
         baseDirectory: frontend/dist
         files:
@@ -44,10 +44,10 @@ applications:
       phases:
         preBuild:
           commands:
-            - cd frontend && npm install
+            - npm --prefix frontend install
         build:
           commands:
-            - cd frontend && npm run build
+            - npm --prefix frontend run build
       artifacts:
         baseDirectory: frontend/dist
         files:
