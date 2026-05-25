@@ -1,23 +1,57 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - npm install
-    build:
-      commands:
-        - npm run build
-  artifacts:
-    baseDirectory: frontend/dist
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - node_modules/**/*
-  customHeaders:
-    - pattern: '*.appcache'
-      headers:
-        - key: Content-Type
-          value: text/cache-manifest
-        - key: Cache-Control
-          value: no-cache
+applications:
+  - appRoot: sites/daily
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - cd frontend && npm install
+        build:
+          commands:
+            - cd frontend && npm run build
+      artifacts:
+        baseDirectory: sites/daily/frontend/dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - sites/daily/frontend/node_modules/**/*
+      customHeaders:
+        - pattern: '*.appcache'
+          headers:
+            - key: Content-Type
+              value: text/cache-manifest
+            - key: Cache-Control
+              value: no-cache
+  - appRoot: sites/insect
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - cd frontend && npm install
+        build:
+          commands:
+            - cd frontend && npm run build
+      artifacts:
+        baseDirectory: sites/insect/frontend/dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - sites/insect/frontend/node_modules/**/*
+  - appRoot: sites/dog
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - cd frontend && npm install
+        build:
+          commands:
+            - cd frontend && npm run build
+      artifacts:
+        baseDirectory: sites/dog/frontend/dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - sites/dog/frontend/node_modules/**/*

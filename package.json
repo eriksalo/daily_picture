@@ -1,15 +1,21 @@
 {
-  "name": "dailypicture",
+  "name": "daily-picture",
   "private": true,
-  "version": "0.1.0",
-  "description": "Daily historical event images for e-ink displays",
-  "workspaces": [
-    "amplify",
-    "frontend"
-  ],
+  "version": "0.2.0",
+  "description": "AI-generated daily images (history, insects, dogs) for physical displays",
   "scripts": {
-    "dev": "npm run dev --workspace=frontend",
-    "build": "npm run build --workspace=frontend",
-    "sandbox": "npx ampx sandbox --workspace=amplify"
+    "dev:daily": "npm --prefix sites/daily/frontend run dev",
+    "dev:insect": "npm --prefix sites/insect/frontend run dev",
+    "dev:dog": "npm --prefix sites/dog/frontend run dev",
+    "build:daily": "npm --prefix sites/daily/frontend run build",
+    "build:insect": "npm --prefix sites/insect/frontend run build",
+    "build:dog": "npm --prefix sites/dog/frontend run build",
+    "sandbox:daily": "npm --prefix sites/daily/amplify exec -- ampx sandbox",
+    "sandbox:insect": "npm --prefix sites/insect/amplify exec -- ampx sandbox",
+    "sandbox:dog": "npm --prefix sites/dog/amplify exec -- ampx sandbox",
+    "install:daily": "npm --prefix sites/daily/frontend install && npm --prefix sites/daily/amplify install",
+    "install:insect": "npm --prefix sites/insect/frontend install && npm --prefix sites/insect/amplify install",
+    "install:dog": "npm --prefix sites/dog/frontend install && npm --prefix sites/dog/amplify install",
+    "install:all": "npm run install:daily"
   }
 }
