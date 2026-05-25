@@ -10,12 +10,12 @@ applications:
           commands:
             - cd frontend && npm run build
       artifacts:
-        baseDirectory: sites/daily/frontend/dist
+        baseDirectory: frontend/dist
         files:
           - '**/*'
       cache:
         paths:
-          - sites/daily/frontend/node_modules/**/*
+          - frontend/node_modules/**/*
       customHeaders:
         - pattern: '*.appcache'
           headers:
@@ -33,12 +33,12 @@ applications:
           commands:
             - cd frontend && npm run build
       artifacts:
-        baseDirectory: sites/insect/frontend/dist
+        baseDirectory: frontend/dist
         files:
           - '**/*'
       cache:
         paths:
-          - sites/insect/frontend/node_modules/**/*
+          - frontend/node_modules/**/*
   - appRoot: sites/dog
     frontend:
       phases:
@@ -49,9 +49,9 @@ applications:
           commands:
             - cd frontend && npm run build
       artifacts:
-        baseDirectory: sites/dog/frontend/dist
+        baseDirectory: frontend/dist
         files:
           - '**/*'
       cache:
         paths:
-          - sites/dog/frontend/node_modules/**/*
+          - frontend/node_modules/**/*
