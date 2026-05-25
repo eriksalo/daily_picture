@@ -12,7 +12,7 @@ interface DisplayResponse {
 }
 
 // API Gateway endpoint — update after backend is deployed
-const API_BASE = 'https://DOG_API_BASE.execute-api.us-east-1.amazonaws.com';
+const API_BASE = 'https://oub8j5axgg.execute-api.us-east-1.amazonaws.com';
 const API_URL = `${API_BASE}/api/display`;
 const GENERATE_URL = `${API_BASE}/api/generate`;
 

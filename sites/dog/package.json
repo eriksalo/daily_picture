@@ -1,0 +1,14 @@
+{
+  "name": "dog-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "sandbox": "ampx sandbox",
+    "sandbox:once": "ampx sandbox --once",
+    "secret": "ampx sandbox secret"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend-cli": "^1.0.0"
+  }
+}
