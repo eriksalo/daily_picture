@@ -21,9 +21,7 @@ Each site generates two image variants per day:
 | Repo | Purpose | Tech |
 |------|---------|------|
 | **daily_picture** (this repo) | Three sites: daily / insect / dog backends + frontends | Amplify Gen 2, Gemini 3, Vite |
-| **[daily-picture-m5paper](https://github.com/eriksalo/daily-picture-m5paper)** | Firmware for M5Stack PaperS3 e-ink frame | PlatformIO, M5Unified, epdiy |
-| **[daily-picture-frameo](https://github.com/eriksalo/daily-picture-frameo)** | Frameo client: ADB push script + kiosk HTML | Bash, plain HTML/JS |
-| **daily-picture-photopainter** *(planned)* | Firmware for Waveshare ESP32-S3 PhotoPainter | PlatformIO, ESP-IDF |
+| **[daily-picture-frames](https://github.com/eriksalo/daily-picture-frames)** | Hardware: M5Stack PaperS3 firmware, Frameo tooling, planned Waveshare PhotoPainter firmware | PlatformIO, ADB scripts |
 
 **Frame ↔ site pairing**: Each frame chooses a site via config (`SITE=daily|insect|dog`). Same firmware binary, different runtime config.
 
@@ -39,12 +37,10 @@ sites/
   daily/
     amplify/       # backend (CDK + Lambdas)
     frontend/      # Vite app
-  insect/          # (to be imported from daily-bug-frameo)
-  dog/             # (to be scaffolded)
+  insect/
+  dog/
 packages/
   shared/          # (planned) shared prompt framework, display-api helpers, jimp helpers
-scripts/
-  frameo-wifi.ps1
 amplify.yml        # Amplify Hosting monorepo config (one app per site)
 package.json       # root convenience scripts (dev:daily, sandbox:insect, etc.)
 ```
@@ -71,11 +67,7 @@ npx ampx sandbox secret set GOOGLE_API_KEY # Set Google AI secret (pipe value vi
 ```
 
 ### Frameo WiFi Setup
-```powershell
-.\scripts\frameo-wifi.ps1              # Open WiFi settings on frame via USB ADB
-.\scripts\frameo-wifi.ps1 -Restore     # Restore kiosk mode
-```
-Requires ADB (`winget install Google.PlatformTools`). Connect Frameo via USB.
+Tooling lives in [daily-picture-frames](https://github.com/eriksalo/daily-picture-frames) under `frameo/scripts/frameo-wifi.ps1`. Connect the frame via USB and run the script from a checkout of that repo.
 
 ### Deploy
 Push to GitHub triggers Amplify Hosting builds. `amplify.yml` uses the `applications:` monorepo format — each site is a separate Amplify Hosting app in the AWS console (one app per appRoot under `sites/`). Backend deploys via `npx ampx sandbox --once` from the site's `amplify/` directory.
@@ -114,7 +106,7 @@ images/YYYY-MM-DD/metadata.json      # includes frameo_image_key
 - **Frameo WebView**: Chrome 44 on Android 6 — no `fetch`, no ES6 modules. `frame.html` uses `XMLHttpRequest`.
 - **Frontend API URL**: Uses absolute API Gateway URL (not relative), because Amplify Hosting returns HTML for unknown paths. URL is hardcoded in each site's `frontend/src/app.ts`.
 - **Git Bash path conversion**: AWS CLI paths starting with `/aws` get mangled. Use `python -c` subprocess with `shell=True` and `aws.cmd`.
-- **Frameo kiosk**: Frames run `uk.nktnet.webviewkiosk` (WebviewKiosk) as default launcher on Android 6.0.1. To change WiFi, use `scripts/frameo-wifi.ps1` via USB ADB. ADB over network: port 5555.
+- **Frameo kiosk**: Frames run `uk.nktnet.webviewkiosk` (WebviewKiosk) as default launcher on Android 6.0.1. To change WiFi, use the `frameo-wifi.ps1` tool from the `daily-picture-frames` repo via USB ADB. ADB over network: port 5555.
 
 ## File Layout (per site — example: `sites/daily/`)
 
