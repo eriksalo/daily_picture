@@ -74,6 +74,10 @@ h1 {
   aspect-ratio: 16 / 9;
 }
 
+.image-variant:has(#color-image) .image-container {
+  aspect-ratio: 16 / 10;
+}
+
 .variant-label {
   font-size: 0.75rem;
   color: #666;
