@@ -7,18 +7,23 @@
     "dev:daily": "npm --prefix sites/daily/frontend run dev",
     "dev:insect": "npm --prefix sites/insect/frontend run dev",
     "dev:dog": "npm --prefix sites/dog/frontend run dev",
+    "dev:nerd": "npm --prefix sites/nerd/frontend run dev",
     "build:daily": "npm --prefix sites/daily/frontend run build",
     "build:insect": "npm --prefix sites/insect/frontend run build",
     "build:dog": "npm --prefix sites/dog/frontend run build",
+    "build:nerd": "npm --prefix sites/nerd/frontend run build",
     "sandbox:daily": "npm --prefix sites/daily run sandbox",
     "sandbox:insect": "npm --prefix sites/insect run sandbox",
     "sandbox:dog": "npm --prefix sites/dog run sandbox",
+    "sandbox:nerd": "npm --prefix sites/nerd run sandbox",
     "sandbox:once:daily": "npm --prefix sites/daily run sandbox:once",
     "sandbox:once:insect": "npm --prefix sites/insect run sandbox:once",
     "sandbox:once:dog": "npm --prefix sites/dog run sandbox:once",
+    "sandbox:once:nerd": "npm --prefix sites/nerd run sandbox:once",
     "install:daily": "npm --prefix sites/daily install && npm --prefix sites/daily/frontend install && npm --prefix sites/daily/amplify install",
     "install:insect": "npm --prefix sites/insect install && npm --prefix sites/insect/frontend install && npm --prefix sites/insect/amplify install",
     "install:dog": "npm --prefix sites/dog install && npm --prefix sites/dog/frontend install && npm --prefix sites/dog/amplify install",
+    "install:nerd": "npm --prefix sites/nerd install && npm --prefix sites/nerd/frontend install && npm --prefix sites/nerd/amplify install",
     "install:all": "npm run install:daily"
   }
 }

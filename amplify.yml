@@ -55,3 +55,19 @@ applications:
       cache:
         paths:
           - frontend/node_modules/**/*
+  - appRoot: sites/nerd
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm --prefix frontend install
+        build:
+          commands:
+            - npm --prefix frontend run build
+      artifacts:
+        baseDirectory: frontend/dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - frontend/node_modules/**/*

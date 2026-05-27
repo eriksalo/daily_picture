@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Daily Picture** is a monorepo of three sister sites that each generate an AI image once a day and serve it to physical displays. Each site has its own theme, its own Amplify Gen 2 backend, its own frontend, and its own domain.
+**Daily Picture** is a monorepo of sister sites that each generate an AI image once a day and serve it to physical displays. Each site has its own theme, its own Amplify Gen 2 backend, its own frontend, and its own domain.
 
 | Site | Theme | Domain |
 |------|-------|--------|
 | `sites/daily` | Historical event "the moment just before" — viewer knows what comes next | daily.salo.cloud |
 | `sites/insect` | Insect / arthropod of the day | (TBD) |
 | `sites/dog` | Dog breed / dog moment of the day | (TBD) |
+| `sites/nerd` | Historically significant person in technology | nerd.salo.cloud |
 
 Each site generates two image variants per day:
 - **Grayscale 960x540** for the M5Stack PaperS3 (e-ink) and Waveshare ESP32-S3 PhotoPainter
@@ -20,10 +21,10 @@ Each site generates two image variants per day:
 
 | Repo | Purpose | Tech |
 |------|---------|------|
-| **daily_picture** (this repo) | Three sites: daily / insect / dog backends + frontends | Amplify Gen 2, Gemini 3, Vite |
+| **daily_picture** (this repo) | Sites: daily / insect / dog / nerd backends + frontends | Amplify Gen 2, Gemini 3, Vite |
 | **[daily-picture-frames](https://github.com/eriksalo/daily-picture-frames)** | Hardware: M5Stack PaperS3 firmware, Frameo tooling, planned Waveshare PhotoPainter firmware | PlatformIO, ADB scripts |
 
-**Frame ↔ site pairing**: Each frame chooses a site via config (`SITE=daily|insect|dog`). Same firmware binary, different runtime config.
+**Frame ↔ site pairing**: Each frame chooses a site via config (`SITE=daily|insect|dog|nerd`). Same firmware binary, different runtime config.
 
 **Physical displays**:
 - 1× M5Stack PaperS3 (e-ink, grayscale)
@@ -39,6 +40,7 @@ sites/
     frontend/      # Vite app
   insect/
   dog/
+  nerd/
 packages/
   shared/          # (planned) shared prompt framework, display-api helpers, jimp helpers
 amplify.yml        # Amplify Hosting monorepo config (one app per site)
@@ -56,7 +58,7 @@ npm run build:daily       # Production build for daily site -> sites/daily/front
 npm run sandbox:daily     # Deploy daily backend to personal sandbox
 ```
 
-Replace `daily` with `insect` or `dog` for the other sites.
+Replace `daily` with `insect`, `dog`, or `nerd` for the other sites.
 
 ### Direct (per-site) commands
 From `sites/<site>/amplify/`:

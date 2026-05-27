@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Nerd</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Daily Nerd</h1>
+      <p class="subtitle">A historically significant person in technology, every day</p>
+    </header>
+
+    <div id="loading" class="loading">Loading today's nerd...</div>
+
+    <div id="content" class="content" hidden>
+      <div id="single-image" class="image-container">
+        <img id="daily-image" alt="Today's nerd" />
+      </div>
+      <div id="dual-images" class="image-grid" hidden>
+        <div class="image-variant">
+          <p class="variant-label">Color (Frameo 1280x800)</p>
+          <div class="image-container">
+            <img id="color-image" alt="Color variant" />
+          </div>
+        </div>
+        <div class="image-variant">
+          <p class="variant-label">Grayscale (e-ink 960x540)</p>
+          <div class="image-container">
+            <img id="eink-image" alt="Grayscale variant" />
+          </div>
+        </div>
+      </div>
+      <div class="event-info">
+        <h2 id="name"></h2>
+        <p id="name-meta" class="event-date"></p>
+        <p id="overlay-fact"></p>
+        <ul id="fun-facts" class="fun-facts"></ul>
+        <p id="contribution" class="habitat"></p>
+      </div>
+      <div class="controls">
+        <button id="generate-btn" class="btn">Generate New Nerd</button>
+        <p id="generate-status" class="generate-status"></p>
+      </div>
+    </div>
+
+    <div id="error" class="error" hidden>
+      <p>No nerd generated yet.</p>
+      <div class="controls">
+        <button id="generate-btn-error" class="btn">Generate Today's Nerd</button>
+        <p id="generate-status-error" class="generate-status"></p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Generated daily with AI. Portraits of the people who shaped computing and technology.</p>
+  </footer>
+
+  <script type="module" src="./app.ts"></script>
+</body>
+</html>
