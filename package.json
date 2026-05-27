@@ -20,10 +20,10 @@
     "sandbox:once:insect": "npm --prefix sites/insect run sandbox:once",
     "sandbox:once:dog": "npm --prefix sites/dog run sandbox:once",
     "sandbox:once:nerd": "npm --prefix sites/nerd run sandbox:once",
-    "install:daily": "npm --prefix sites/daily install && npm --prefix sites/daily/frontend install && npm --prefix sites/daily/amplify install",
-    "install:insect": "npm --prefix sites/insect install && npm --prefix sites/insect/frontend install && npm --prefix sites/insect/amplify install",
-    "install:dog": "npm --prefix sites/dog install && npm --prefix sites/dog/frontend install && npm --prefix sites/dog/amplify install",
-    "install:nerd": "npm --prefix sites/nerd install && npm --prefix sites/nerd/frontend install && npm --prefix sites/nerd/amplify install",
-    "install:all": "npm run install:daily"
+    "install:daily": "npm --prefix sites/daily install && npm --prefix sites/daily/frontend install && npm --prefix sites/daily/amplify install && npm --prefix sites/daily/amplify/functions/display-api install && npm --prefix sites/daily/amplify/functions/generate-daily-image install",
+    "install:insect": "npm --prefix sites/insect install && npm --prefix sites/insect/frontend install && npm --prefix sites/insect/amplify install && npm --prefix sites/insect/amplify/functions/display-api install && npm --prefix sites/insect/amplify/functions/generate-daily-insect install",
+    "install:dog": "npm --prefix sites/dog install && npm --prefix sites/dog/frontend install && npm --prefix sites/dog/amplify install && npm --prefix sites/dog/amplify/functions/display-api install && npm --prefix sites/dog/amplify/functions/generate-daily-dog install",
+    "install:nerd": "npm --prefix sites/nerd install && npm --prefix sites/nerd/frontend install && npm --prefix sites/nerd/amplify install && npm --prefix sites/nerd/amplify/functions/display-api install && npm --prefix sites/nerd/amplify/functions/generate-daily-nerd install",
+    "install:all": "npm run install:daily && npm run install:insect && npm run install:dog && npm run install:nerd"
   }
 }
