@@ -13,6 +13,27 @@ const s3 = new S3Client();
 
 const USED_KEY = 'state/used-breeds.json';
 
+async function withRetry<T>(fn: () => Promise<T>, label: string, maxRetries = 3): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastErr = err;
+      const msg = String(err?.message ?? err);
+      const status = err?.status ?? err?.code;
+      const isTransient =
+        /service unavailable|overloaded|temporarily unavailable|deadline exceeded|\bunavailable\b|rate.?limit|\b(429|500|502|503|504)\b/i.test(msg) ||
+        [429, 500, 502, 503, 504].includes(Number(status));
+      if (!isTransient || attempt === maxRetries) throw err;
+      const delayMs = Math.min(1000 * 2 ** attempt, 16000) + Math.floor(Math.random() * 500);
+      console.warn(`[retry] ${label} attempt ${attempt + 1}/${maxRetries + 1} failed (${msg.substring(0, 120)}); retrying in ${delayMs}ms`);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw lastErr;
+}
+
 async function getUsedBreeds(bucket: string): Promise<string[]> {
   try {
     const obj = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: USED_KEY }));
@@ -53,7 +74,7 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     let dog: DogSelection | null = null;
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
-      const selectionResponse = await ai.models.generateContent({
+      const selectionResponse = await withRetry(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: getDogSelectionPrompt(usedBreeds),
         config: {
@@ -75,7 +96,7 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
             required: ['breed', 'breed_group', 'origin', 'temperament', 'fun_facts', 'overlay_fact', 'image_prompt'],
           },
         },
-      });
+      }), 'dog selection');
 
       const outputParts = selectionResponse.candidates?.[0]?.content?.parts ?? [];
       const selectionText = outputParts.filter((p: any) => p.text && !p.thought).map((p: any) => p.text).join('');
@@ -104,14 +125,14 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     console.log(`Selected: ${dog.breed}`);
 
     const grayscalePrompt = getGrayscaleImagePrompt(dog.image_prompt, dog.breed, dog.overlay_fact);
-    const grayscaleResponse = await ai.models.generateContent({
+    const grayscaleResponse = await withRetry(() => ai.models.generateContent({
       model: 'gemini-3.1-flash-image-preview',
       contents: grayscalePrompt,
       config: {
         responseModalities: ['IMAGE'],
         imageConfig: { aspectRatio: '16:9' },
       },
-    });
+    }), 'grayscale image');
 
     const grayParts = grayscaleResponse.candidates?.[0]?.content?.parts ?? [];
     const grayImagePart = grayParts.find((p: any) => p.inlineData?.mimeType?.startsWith('image/'));
@@ -135,14 +156,14 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
     let frameoImageKey: string | undefined;
     try {
       const colorPrompt = getColorImagePrompt(dog.image_prompt, dog.breed, dog.overlay_fact);
-      const colorResponse = await ai.models.generateContent({
+      const colorResponse = await withRetry(() => ai.models.generateContent({
         model: 'gemini-3.1-flash-image-preview',
         contents: colorPrompt,
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
           imageConfig: { aspectRatio: '16:9' },
         },
-      });
+      }), 'color image');
 
       const colorParts = colorResponse.candidates?.[0]?.content?.parts ?? [];
       const colorImagePart = colorParts.find((p: any) => p.inlineData?.mimeType?.startsWith('image/'));
