@@ -70,13 +70,14 @@ Style: Photorealistic dog photography in full vivid color. Shot with a Canon 70-
 COMPOSITION RULE — VERY IMPORTANT: Frame the dog in the upper two-thirds of the image. The lower 25% of the image MUST be reserved as a darker, low-detail caption area (a subtle dark gradient fading into the scene). Do NOT place the dog's face, body, or paws in the lower 25% — that strip is reserved for text overlay.
 
 TEXT OVERLAY POSITION — VERY IMPORTANT: Render the text in the BOTTOM 20% of the image, horizontally centered. Specifically:
-  - Line 1 (top of the caption block, ~80% from the top of the image): "${breed}" in large bold white sans-serif text.
-  - Line 2 (directly below Line 1, ~90% from the top of the image): "${overlayFact}" in smaller white sans-serif text.
-Use a subtle dark drop shadow for legibility. The text must be perfectly legible and spelled exactly as given.
+  - Line 1 (top of the caption block, ~85% from the top of the image): "${breed}" in small bold white sans-serif text — caption-sized, approximately 4% of the image height, NOT a title or headline.
+  - Line 2 (directly below Line 1, ~92% from the top of the image): "${overlayFact}" in even smaller white sans-serif text — approximately 3% of the image height.
+The text should be a discreet caption, not a dominant title. Use a subtle dark drop shadow for legibility. The text must be perfectly legible and spelled exactly as given.
 
 ABSOLUTE RULES FOR TEXT PLACEMENT — DO NOT VIOLATE:
   - Text must NEVER appear in the center of the image.
   - Text must NEVER appear in the top half of the image.
   - Text must NEVER appear over the dog's body or face.
-  - Text must ONLY appear in the bottom 20% strip, horizontally centered.`;
+  - Text must ONLY appear in the bottom 20% strip, horizontally centered.
+  - Text must be SMALL — caption-sized, not headline-sized.`;
 }
