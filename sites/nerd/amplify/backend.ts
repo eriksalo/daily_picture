@@ -65,11 +65,14 @@ httpApi.addRoutes({
 // Allow the generate lambda to invoke itself asynchronously. API Gateway
 // caps integration time at 30 s but generation takes 30-60 s; the lambda
 // re-invokes itself via InvocationType=Event and returns 202 immediately.
+// Resource is a same-account wildcard to avoid the lambda↔role circular
+// dependency (referencing the lambda's own ARN here creates a cycle).
+const generateLambdaStack = Stack.of(backend.generateDailyNerd.resources.lambda);
 backend.generateDailyNerd.resources.lambda.role?.addToPrincipalPolicy(
   new PolicyStatement({
     effect: Effect.ALLOW,
     actions: ['lambda:InvokeFunction'],
-    resources: [backend.generateDailyNerd.resources.lambda.functionArn],
+    resources: [`arn:aws:lambda:${generateLambdaStack.region}:${generateLambdaStack.account}:function:*`],
   }),
 );
 
