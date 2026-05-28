@@ -86,6 +86,23 @@ async function generate(): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
+
+    // 202 = lambda kicked off async generation, takes ~30-60 s.
+    // Reload after 60 s; the lambda will have written the new image to S3.
+    if (response.status === 202) {
+      let remaining = 60;
+      status.textContent = `Generation in progress... reloading in ${remaining}s`;
+      const tick = setInterval(() => {
+        remaining -= 1;
+        status.textContent = `Generation in progress... reloading in ${remaining}s`;
+        if (remaining <= 0) {
+          clearInterval(tick);
+          location.reload();
+        }
+      }, 1000);
+      return;
+    }
+
     const data = await response.json();
 
     if (!response.ok) {

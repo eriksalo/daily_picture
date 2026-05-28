@@ -1,5 +1,6 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { GoogleGenAI } from '@google/genai';
 import { Jimp } from 'jimp';
 import {
@@ -10,6 +11,7 @@ import {
 } from './prompts.js';
 
 const s3 = new S3Client();
+const lambdaClient = new LambdaClient();
 
 const USED_KEY = 'state/used-insects.json';
 
@@ -58,8 +60,26 @@ async function recordUsedInsect(bucket: string, name: string): Promise<void> {
 
 export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | APIGatewayProxyResultV2> => {
   const bucketName = process.env.DAILY_INSECT_IMAGES_BUCKET_NAME!;
-  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
   const isApiCall = event?.requestContext?.http !== undefined;
+  const isAsyncTrigger = (event as any)?._async === true;
+
+  // Fire-and-forget: API Gateway has a 30s integration cap, but generation
+  // takes 30-60s. When invoked synchronously via HTTP API, re-invoke self
+  // asynchronously and return 202 immediately.
+  if (isApiCall && !isAsyncTrigger) {
+    await lambdaClient.send(new InvokeCommand({
+      FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME!,
+      InvocationType: 'Event',
+      Payload: Buffer.from(JSON.stringify({ _async: true })),
+    }));
+    return {
+      statusCode: 202,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Generation started; reload in ~60s' }),
+    };
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 
   const today = new Date();
   const dateStr = today.toISOString().split('T')[0]!;

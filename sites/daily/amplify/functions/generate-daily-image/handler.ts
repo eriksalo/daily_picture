@@ -1,25 +1,56 @@
 // Daily image generation Lambda — Gemini 3 Flash + Nano Banana 2
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { GoogleGenAI } from '@google/genai';
 import { Jimp } from 'jimp';
 import { getEventSelectionPrompt, getImageGenerationPrompt, getColorImageGenerationPrompt, monthName } from './prompts.js';
 
 const s3 = new S3Client();
+const lambdaClient = new LambdaClient();
 
 export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | APIGatewayProxyResultV2> => {
   const bucketName = process.env.DAILY_PICTURE_IMAGES_BUCKET_NAME!;
-  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
   const isApiCall = event?.requestContext?.http !== undefined;
+  const isAsyncTrigger = (event as any)?._async === true;
+
+  // Fire-and-forget: API Gateway has a 30s integration cap, but generation
+  // takes 30-60s. When invoked synchronously via HTTP API, re-invoke self
+  // asynchronously and return 202 immediately. The frontend reloads to
+  // pick up the new image once generation finishes.
+  if (isApiCall && !isAsyncTrigger) {
+    const payload: Record<string, unknown> = { _async: true };
+    if (event?.body) {
+      try {
+        Object.assign(payload, JSON.parse(event.body));
+      } catch { /* ignore parse errors */ }
+    }
+    await lambdaClient.send(new InvokeCommand({
+      FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME!,
+      InvocationType: 'Event',
+      Payload: Buffer.from(JSON.stringify(payload)),
+    }));
+    return {
+      statusCode: 202,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Generation started; reload in ~60s' }),
+    };
+  }
+
+  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 
   const today = new Date();
   const dateStr = today.toISOString().split('T')[0]!;
   const month = today.getUTCMonth() + 1;
   const day = today.getUTCDate();
 
-  // Parse style from request body (POST) or default to art_deco
+  // Style comes from the async-trigger payload (re-invoke) or, for direct
+  // sync invokes (e.g. ampx test), from the request body.
   let style = 'art_deco';
-  if (isApiCall && event?.body) {
+  const triggerStyle = (event as any)?.style;
+  if (isAsyncTrigger && typeof triggerStyle === 'string') {
+    style = triggerStyle;
+  } else if (isApiCall && event?.body) {
     try {
       const body = JSON.parse(event.body);
       if (body.style) style = body.style;

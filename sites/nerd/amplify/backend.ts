@@ -6,6 +6,7 @@ import {
   HttpMethod,
 } from 'aws-cdk-lib/aws-apigatewayv2';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { auth } from './auth/resource';
 import { storage } from './storage/resource';
 import { generateDailyNerd } from './functions/generate-daily-nerd/resource';
@@ -60,6 +61,17 @@ httpApi.addRoutes({
   methods: [HttpMethod.POST],
   integration: generateIntegration,
 });
+
+// Allow the generate lambda to invoke itself asynchronously. API Gateway
+// caps integration time at 30 s but generation takes 30-60 s; the lambda
+// re-invokes itself via InvocationType=Event and returns 202 immediately.
+backend.generateDailyNerd.resources.lambda.role?.addToPrincipalPolicy(
+  new PolicyStatement({
+    effect: Effect.ALLOW,
+    actions: ['lambda:InvokeFunction'],
+    resources: [backend.generateDailyNerd.resources.lambda.functionArn],
+  }),
+);
 
 backend.addOutput({
   custom: {
