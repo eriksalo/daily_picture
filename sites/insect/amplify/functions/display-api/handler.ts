@@ -55,6 +55,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
     habitat: '',
     fun_facts: [],
     overlay_fact: '',
+    generated_at: '',
   };
 
   try {
@@ -97,6 +98,10 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       habitat: metadata.habitat,
       fun_facts: metadata.fun_facts,
       overlay_fact: metadata.overlay_fact,
+      // Changes on every generation, unlike `date`. Battery-powered frames use
+      // it to tell "same picture as the one already on my screen" from "this
+      // day was regenerated", which a date comparison cannot distinguish.
+      generated_at: metadata.generated_at ?? '',
       refresh_rate: 86400,
     }),
   };
