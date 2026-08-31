@@ -63,18 +63,23 @@ npm run sandbox:daily     # Deploy daily backend to personal sandbox
 Replace `daily` with `insect`, `dog`, or `nerd` for the other sites.
 
 ### Direct (per-site) commands
-From `sites/<site>/amplify/`:
+From `sites/<site>/` -- the directory that *contains* `amplify/`, NOT `amplify/`
+itself. Run from inside `amplify/` and ampx prints its usage text plus
+`[PathNotFoundError] ./amplify does not exist` **and still exits 0**, so a
+scripted deploy looks like it succeeded when nothing was deployed.
 ```bash
 npx ampx sandbox                           # Deploy backend to personal sandbox
 npx ampx sandbox --once                    # Deploy once without watching
 npx ampx sandbox secret set GOOGLE_API_KEY # Set Google AI secret (pipe value via stdin)
 ```
+Prefer the root scripts (`npm run sandbox:once:insect`), which set the working
+directory correctly.
 
 ### Frameo WiFi Setup
 Tooling lives in [daily-picture-frames](https://github.com/eriksalo/daily-picture-frames) under `frameo/scripts/frameo-wifi.ps1`. Connect the frame via USB and run the script from a checkout of that repo.
 
 ### Deploy
-Push to GitHub triggers Amplify Hosting builds. `amplify.yml` uses the `applications:` monorepo format — each site is a separate Amplify Hosting app in the AWS console (one app per appRoot under `sites/`). Backend deploys via `npx ampx sandbox --once` from the site's `amplify/` directory.
+Push to GitHub triggers Amplify Hosting builds. `amplify.yml` uses the `applications:` monorepo format — each site is a separate Amplify Hosting app in the AWS console (one app per appRoot under `sites/`). Backend deploys via `npm run sandbox:once:<site>` from the repo root (equivalently `npx ampx sandbox --once` from `sites/<site>/`, not from `sites/<site>/amplify/`).
 
 ## Architecture (per site)
 
