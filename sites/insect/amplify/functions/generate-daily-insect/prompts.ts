@@ -83,3 +83,41 @@ ABSOLUTE RULES FOR TEXT PLACEMENT — DO NOT VIOLATE:
   - Text must ONLY appear in the bottom 20% strip, horizontally centered.
   - Text must be SMALL — caption-sized, not headline-sized.`;
 }
+
+/**
+ * Image prompt for the M5Stack Paper Color frame (600x400 Spectra 6 e-ink).
+ *
+ * This frame can render exactly six colours: black, white, yellow, red, blue,
+ * green. A photorealistic macro shot is the worst possible input for it - the
+ * bokeh backgrounds and subtle mid-tones dither into red/green speckle. Bold
+ * flat colour with hard edges survives the palette almost intact, so this asks
+ * for screen-print poster art in the panel's own colours instead.
+ *
+ * Note this variant carries NO baked-in text: the firmware draws its own
+ * caption band (common name, scientific name, battery) in the bottom 62px, so
+ * the artwork is the top 338px only and must be full-bleed.
+ */
+export function getSpectra6ImagePrompt(imagePrompt: string, commonName: string): string {
+  return `${imagePrompt}
+
+Subject: ${commonName}.
+
+Style: Bold vintage SCREEN-PRINT / RISOGRAPH POSTER illustration. Flat areas of solid colour with crisp hard edges and confident black linework, in the tradition of mid-century natural history plates and silkscreen concert posters. Think printed poster, NOT photograph.
+
+STRICT COLOUR PALETTE - use ONLY these six colours, as flat solid fills:
+  - pure black
+  - pure white
+  - bright saturated yellow
+  - deep pure red
+  - vivid blue
+  - strong leaf green
+Every area must be one of those six flat colours. Where you need shading or texture, use visible crosshatching, stippling, or halftone dots in those same flat colours - NEVER smooth gradients, NEVER blended intermediate tones, NEVER pastels, browns, greys, oranges, purples, or teals.
+
+COMPOSITION:
+  - The specimen fills the frame boldly and is the unmistakable focus, rendered large and graphic with strong black outlines.
+  - Simple flat background: a single solid colour, or a simple bold graphic shape (a circle, a band, a leaf silhouette) in one other palette colour. High contrast against the subject.
+  - No depth of field, no bokeh, no photographic blur, no soft focus, no realistic lighting or shadows.
+  - Landscape orientation, 16:9 aspect ratio, edge-to-edge artwork.
+
+ABSOLUTELY NO TEXT: do not render any words, letters, numbers, captions, titles, labels, signatures, or watermarks anywhere in the image. The frame adds its own caption separately. The image must be pure artwork.`;
+}

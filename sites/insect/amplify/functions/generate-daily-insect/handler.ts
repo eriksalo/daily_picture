@@ -7,8 +7,10 @@ import {
   getInsectSelectionPrompt,
   getGrayscaleImagePrompt,
   getColorImagePrompt,
+  getSpectra6ImagePrompt,
   type InsectSelection,
 } from './prompts.js';
+import { toSpectra6Png } from './spectra6.js';
 
 const s3 = new S3Client();
 const lambdaClient = new LambdaClient();
@@ -213,6 +215,49 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
       console.error('Color image generation failed (continuing without Frameo variant):', colorErr);
     }
 
+    // Paper Color (M5Stack, 600x400 Spectra 6 e-ink)
+    //
+    // Rendered from its own prompt rather than reusing the Frameo image: this
+    // panel has a six-colour gamut, and a photoreal macro shot dithers into
+    // speckle on it. The artwork is also text-free and sized to the panel's
+    // 600x338 image area, because the firmware draws its own caption band.
+    let papercolorImageKey: string | undefined;
+    try {
+      const spectraPrompt = getSpectra6ImagePrompt(insect.image_prompt, insect.common_name);
+      const spectraResponse = await withRetry(() => ai.models.generateContent({
+        model: 'gemini-3.1-flash-image-preview',
+        contents: spectraPrompt,
+        config: {
+          responseModalities: ['IMAGE'],
+          imageConfig: { aspectRatio: '16:9' },
+        },
+      }), 'papercolor image');
+
+      const spectraParts = spectraResponse.candidates?.[0]?.content?.parts ?? [];
+      const spectraImagePart = spectraParts.find((p: any) => p.inlineData?.mimeType?.startsWith('image/'));
+
+      if (spectraImagePart?.inlineData?.data) {
+        const spectraBuffer = Buffer.from(spectraImagePart.inlineData.data, 'base64');
+        const papercolorPng = await toSpectra6Png(spectraBuffer);
+
+        // PNG, not JPEG: this image is already dithered to the panel's exact
+        // six colours, and JPEG would smear it back off-palette.
+        papercolorImageKey = `images/${dateStr}/image-papercolor.png`;
+        await s3.send(new PutObjectCommand({
+          Bucket: bucketName,
+          Key: papercolorImageKey,
+          Body: papercolorPng,
+          ContentType: 'image/png',
+          CacheControl: 'public, max-age=86400',
+        }));
+        console.log(`Uploaded: ${papercolorImageKey} (${papercolorPng.length} bytes)`);
+      } else {
+        console.warn('Gemini returned no papercolor image data - skipping Paper Color variant');
+      }
+    } catch (spectraErr) {
+      console.error('Paper Color image generation failed (continuing without it):', spectraErr);
+    }
+
     const metadata = {
       date: dateStr,
       common_name: insect.common_name,
@@ -223,6 +268,7 @@ export const handler = async (event?: APIGatewayProxyEventV2): Promise<void | AP
       fun_facts: insect.fun_facts,
       overlay_fact: insect.overlay_fact,
       frameo_image_key: frameoImageKey,
+      papercolor_image_key: papercolorImageKey,
       generated_at: new Date().toISOString(),
     };
 

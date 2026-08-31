@@ -10,7 +10,8 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   const deviceId = event.headers?.['x-device-id'] ?? 'unknown';
   const device = event.queryStringParameters?.device;
   const isFrameo = device === 'frameo';
-  console.log(`Request from device ${deviceId}${isFrameo ? ' (frameo)' : ''}`);
+  const isPaperColor = device === 'papercolor';
+  console.log(`Request from device ${deviceId}${device ? ` (${device})` : ''}`);
 
   const today = new Date().toISOString().split('T')[0]!;
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]!;
@@ -34,6 +35,14 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   const frameoKey = `images/${dateStr}/image-frameo.jpg`;
   if (isFrameo && await objectExists(bucketName, frameoKey)) {
     imageKey = frameoKey;
+  }
+
+  // Paper Color: 600x338 PNG, already dithered to the panel's six colours.
+  // Falls through to the default image if the variant is missing, so an older
+  // day (or a failed render) still shows something rather than nothing.
+  const papercolorKey = `images/${dateStr}/image-papercolor.png`;
+  if (isPaperColor && await objectExists(bucketName, papercolorKey)) {
+    imageKey = papercolorKey;
   }
 
   const metadataKey = `images/${dateStr}/metadata.json`;
@@ -66,7 +75,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
   );
 
   let frameoImageUrl: string | undefined;
-  if (!isFrameo && await objectExists(bucketName, frameoKey)) {
+  if (!isFrameo && !isPaperColor && await objectExists(bucketName, frameoKey)) {
     frameoImageUrl = await getSignedUrl(
       s3,
       new GetObjectCommand({ Bucket: bucketName, Key: frameoKey }),

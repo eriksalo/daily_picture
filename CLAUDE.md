@@ -13,9 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `sites/dog` | Dog breed / dog moment of the day | (TBD) |
 | `sites/nerd` | Historically significant person in technology | nerd.salo.cloud |
 
-Each site generates two image variants per day:
+Each site generates image variants per day:
 - **Grayscale 960x540** for the M5Stack PaperS3 (e-ink) and Waveshare ESP32-S3 PhotoPainter
 - **Color 1280x800** for Frameo digital photo frames
+- **Spectra 6 600x338 PNG** for the M5Stack Paper Color e-ink frame (`sites/insect` only so far)
 
 ## Related Repos (frame firmware lives separately)
 
@@ -28,6 +29,7 @@ Each site generates two image variants per day:
 
 **Physical displays**:
 - 1× M5Stack PaperS3 (e-ink, grayscale)
+- 1× M5Stack Paper Color (e-ink, 6-colour Spectra 6) — paired with `insect`
 - 2× Frameo (color LCD)
 - 1× Waveshare ESP32-S3 PhotoPainter (planned)
 
@@ -81,15 +83,17 @@ Push to GitHub triggers Amplify Hosting builds. `amplify.yml` uses the `applicat
 **API Gateway v2 (HTTP API)** — public, no auth:
 - `GET /api/display` — returns e-ink image URL + event metadata (display-api Lambda)
 - `GET /api/display?device=frameo` — returns Frameo color image URL
+- `GET /api/display?device=papercolor` — returns the Spectra 6 PNG for the M5Stack Paper Color (insect site; falls back to the default image if the variant is missing)
 - `POST /api/generate` — triggers image generation with optional `{"style":"art_deco"}` body
 
 **Image pipeline**: Gemini 3 Flash Preview selects the day's subject (JSON mode with responseSchema) -> Nano Banana 2 (`gemini-3.1-flash-image-preview`) generates grayscale 16:9 image -> jimp resizes to 960x540 -> then generates color 16:9 -> jimp resizes to 1280x800 -> both to S3. Text overlay (date + title) is baked into the image by the AI model via prompt.
 
 **S3 layout** (each site has its own bucket):
 ```
-images/YYYY-MM-DD/image.jpg          # 960x540 grayscale (e-ink)
-images/YYYY-MM-DD/image-frameo.jpg   # 1280x800 color (Frameo)
-images/YYYY-MM-DD/metadata.json      # includes frameo_image_key
+images/YYYY-MM-DD/image.jpg              # 960x540 grayscale (e-ink)
+images/YYYY-MM-DD/image-frameo.jpg       # 1280x800 color (Frameo)
+images/YYYY-MM-DD/image-papercolor.png   # 600x338 Spectra 6 (M5 Paper Color; insect only)
+images/YYYY-MM-DD/metadata.json          # includes frameo_image_key, papercolor_image_key
 ```
 
 **Styles**: art_deco, woodcut, ink_wash, noir, sketch — each with grayscale and color variants, defined in `prompts.ts`.
@@ -97,6 +101,35 @@ images/YYYY-MM-DD/metadata.json      # includes frameo_image_key
 **Frontend pages**:
 - `index.html` — main page showing both image variants, style selector, generate button
 - `frame.html` — fullscreen kiosk page for Frameo WebView, auto-refreshes hourly (Chrome 44 / ES5 compatible)
+
+## Spectra 6 variant (M5Stack Paper Color)
+
+`sites/insect/amplify/functions/generate-daily-insect/spectra6.ts` converts a
+generated image for the Paper Color frame. Points that are easy to get wrong:
+
+- **It gets its own Gemini render, not a resize of the Frameo image.** The panel
+  has a six-colour gamut (black/white/yellow/red/blue/green); a photorealistic
+  macro shot dithers into red/green speckle on it. `getSpectra6ImagePrompt()`
+  asks for flat screen-print poster art in those six colours instead, which
+  survives quantisation nearly intact.
+- **The variant carries no baked-in text**, unlike the grayscale and Frameo
+  prompts. The firmware draws its own caption band (common name, scientific
+  name, battery) in the bottom 62px of the 600x400 panel, so the artwork is the
+  top 600x338 only and must be full-bleed. Baked-in text would be cropped
+  mid-sentence and then covered by a second caption.
+- **We dither to M5GFX's exact palette values** (copied from `Panel_ED2208.cpp`).
+  The device maps every pixel to its nearest palette entry, so matching the
+  values exactly makes that lookup an identity map instead of a second,
+  worse-quality dithering pass.
+- **PNG, not JPEG.** JPEG chroma subsampling and ringing smear a hard-dithered
+  image back off-palette. Encoder settings matter: `colorType: 2`,
+  `filterType: 0`, `deflateStrategy: 0` produce ~50 KB, where jimp's defaults
+  produce ~344 KB for identical pixels. Do **not** pass `inputHasAlpha: false` -
+  that describes the input bitmap, which is RGBA, and making pngjs read 3 bytes
+  per pixel from a 4-byte buffer shifts every channel across the image and
+  silently yields off-palette colours.
+- Runs in ~400ms for 600x338, well inside the Lambda budget. Failure is caught
+  and logged; the day's other variants still publish.
 
 ## Key Technical Constraints
 
